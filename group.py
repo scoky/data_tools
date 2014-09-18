@@ -1,97 +1,86 @@
 #!/usr/bin/python
 
+import logging
+import argparse
 import sys
+import traceback
 import os
+import copy
+from decimal import Decimal
 from math import sqrt
 from math import pow
 
-def test():
-	cur = None
-	gindex = int(sys.argv[1])
-	action = sys.argv[2]
-	index = int(sys.argv[3])
-	max_index = max(index,gindex)
+class Command(object):
+	def __init__(self, init, on_row, on_finish):
+		self.init = init
+		self.on_row = on_row
+		self.on_finish = on_finish
 
-	if action == "max" or action == "mean" or action == "sum" or acount == "count":
-		init = 0
-	else:
-		init = float("inf")
-	v = init
-	c = 0
-	dict = {}
-#        f = open(sys.argv[2], "r")
-#        for line in f:
-	while 1:
-                line = sys.stdin.readline()
-                if not line:
-                        break
+class PerformReturn(object):
+	def __init__(self, action):
+		self.action = action
 
-		chunks = line.rstrip().split()
-		if len(chunks) <= max_index:
-			continue
+	def perform(self, a,b):
+		self.action(a,b)
+		return a
 
-		key = chunks[gindex]
-		if key not in dict:
-			if action == "set":
-				dict[key] = [init, 0, set()]
-			else:
-				dict[key] = [init, 0, []]
+commands = {
+'max' : Command(0, lambda a,b: max(a,Decimal(b)), lambda a: str(a)),
+'min' : Command(sys.maxint, lambda a,b: min(a, Decimal(b)), lambda a: str(a)),
+'mean' : Command([], PerformReturn(lambda a,b: a.append(Decimal(b))).perform, lambda a: str(sum(a)/len(a))),
+'sum' : Command(0, lambda a,b: a+Decimal(b), lambda a: str(a)),
+'count' : Command(0, lambda a,b: a+1, lambda a: str(a)),
+'unique' : Command(set(), PerformReturn(lambda a,b: a.add(b)).perform, lambda a: str(len(a)))#,
+#'distribution' : Command([], PerformReturn(lambda a,b: a.append(Decimal(b))).perform, lambda a: str(
+}
+
+
+def group(infile, outfile, group_col, action, action_col, delimiter):
+	command = commands[action]
+	groups = {}
+	for line in infile:
+           try:
+		chunks = line.rstrip().split(delimiter)
+		g = chunks[group_col]
+		if g not in groups:
+			groups[g] = copy.copy(command.init)
+
+		groups[g] = command.on_row(groups[g], chunks[action_col])
+	   except Exception as e:
+           	logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
 		
-#		if cur != chunks[gindex] and cur != None:
-#			if action == "mean":
-#				print cur, v/c
-#			else:
-#				print cur, v
-#			v = init
-#			c = 0
-
-#		c += 1
-		dict[key][1] += 1
-		if action == "max" and float(chunks[index]) > dict[key][0]:
-			dict[key][0] = float(chunks[index])
-		if action == "min" and  float(chunks[index]) < dict[key][0]:
-			dict[key][0] = float(chunks[index])
-		if action == "mean":
-			dict[key][0] += float(chunks[index])
-			dict[key][2].append(float(chunks[index]))
-		if action == "sum":
-			dict[key][0] += int(chunks[index])
-		if action == "count":
-			dict[key][0] += 1
-		if action == "set":
-			dict[key][2].add(chunks[index])
-			
-#		cur = chunks[gindex]
+	for key in sorted(groups.keys()):
+		outfile.write(command.on_finish(groups[key])+'\n')		
 		
 
-#	f.close()
-	for key in sorted(dict.keys()):
-		if action == "mean":
-			dict[key][0] = dict[key][0] / dict[key][1]
+def main():
+    group(args.infile, args.outfile, args.group_col, args.action, args.action_col, args.delimiter)
 
-			# dev
-			m = 0
-			for v in dict[key][2]:
-				m += pow(v - dict[key][0], 2)
-			m = sqrt(m / dict[key][1])
+if __name__ == "__main__":
+    # set up command line args
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
+                                     description='Group rows by a given column value and perform an operation on the group')
+    parser.add_argument('group_col', type=int, default=0, help='Column to group upon')
+    parser.add_argument('action', choices=commands.keys(), help='Action to perform')
+    parser.add_argument('action_col', nargs='?', type=int, default=0, help='Column to act upon')
+    parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
+    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
+    parser.add_argument('-d', '--delimiter', default=None)
+    parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
+    parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')
+    args = parser.parse_args()
 
+    # set up logging
+    if args.quiet:
+        level = logging.WARNING
+    elif args.verbose:
+        level = logging.DEBUG
+    else:
+        level = logging.INFO
+    logging.basicConfig(
+        format = "%(levelname) -10s %(asctime)s %(module)s:%(lineno) -7s %(message)s",
+        level = level
+    )
 
-			# median
-			s = sorted(dict[key][2])
-			med = s[len(s)/2]
-			up90 = s[int(len(s)*0.95)]
-			up50 = s[int(len(s)*0.75)]
-			up20 = s[int(len(s)*0.60)]
-			down20 = s[int(len(s)*0.40)]
-			down50 = s[int(len(s)*0.25)]
-			down90 = s[int(len(s)*0.05)]
-			print key, dict[key][0], m, down90, down50, down20, med, up20, up50, up90
-		elif action == "set":
-			print key, len(dict[key][2])
-		else:
-			print key, dict[key][0]
-		
-		
-
-test()
+    main()
 
