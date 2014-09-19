@@ -8,9 +8,9 @@ import logging
 import argparse
 import traceback
 from multiprocessing import Pool
-from copy import deepcopy
 
 parser = None
+parser_class = None
 formatter = None
 extension = None
 
@@ -19,18 +19,22 @@ class LineParser(object):
 		raise NotImplementedError('This is an abstract method!')
 
 def initializer(prsr, frmtr, xtnsn):
-   global parser, formatter, extension
-   parser = deepcopy(prsr)
+   global parser, formatter, extension, parser_class
+   parser = prsr()
+   parser_class = prsr
    formatter = frmtr
    extension = xtnsn
 
 def parse_logs(log):
+   # Get a new parser instance for this file
+   prsr = parser_class()
+
    logging.info('Parsing (file=%s) on (pid=%s)', log, os.getpid())
    try:
       with gzip.open(log, 'rb') if log.endswith('.gz') else open(log, 'r') as logf:
 	 with open(log+extension, 'w') as outf:
 	    for line in logf:
-	       result = parser.parse(line)
+	       result = prsr.parse(line)
 	       outf.write(formatter(result)+'\n')
    except Exception as e:
       logging.error('Error splitting log files: %s\n%s',\
@@ -43,7 +47,7 @@ def parse_lines(line):
    output = formatter(result)+'\n'
    return output
 
-def get_class_instance(classname):
+def get_class(classname):
 	# class is after the last dot
 	mname, cname = classname.rsplit('.', 1)
 	# import the module
@@ -54,15 +58,15 @@ def get_class_instance(classname):
 	# make sure the class is a subclass of LineParser
 #	assert(issubclass(cls, class(LineParser)))
 	# return an instance of the class
-	return cls()
+	return cls
 
 def main():
    logging.info('Command process (pid=%s)', os.getpid())
 
-   parser = get_class_instance(args.parser)
+   parser_class = get_class(args.parser)
 
    formatter = eval(args.format)    
-   pool = Pool(args.threads, initializer, (parser, formatter, args.output))
+   pool = Pool(args.threads, initializer, (parser_class, formatter, args.output))
    try:
       if args.directory:  # Parsing 1 or more files
          args.logs = glob.glob(args.directory + '/*' + args.extension)
