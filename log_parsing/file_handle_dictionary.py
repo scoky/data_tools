@@ -8,7 +8,7 @@ from collections import OrderedDict
 from collections import MutableMapping
 
 class FileHandleDict(MutableMapping):
-	def __init__(self, limit):
+	def __init__(self, limit=50):
 	        self.store = OrderedDict()
 		self.limit = limit
 
