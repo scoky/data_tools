@@ -14,12 +14,14 @@ parser = None
 parser_class = None
 formatter = None
 extension = None
-def initializer(prsr, frmtr, xtnsn):
-   global parser, formatter, extension, parser_class
+xdirectory = None
+def initializer(prsr, frmtr, xtnsn, xdir):
+   global parser, formatter, extension, parser_class, xdirectory
    parser = prsr()
    parser_class = prsr
    formatter = frmtr
    extension = xtnsn
+   xdirectory = xdir
 
 # Base class for line parsers
 class LineParser(object):
@@ -33,13 +35,23 @@ def parse_log(log):
    logging.info('Parsing (file=%s) on (pid=%s)', log, os.getpid())
    try:
       with gzip.open(log, 'rb') if log.endswith('.gz') else open(log, 'r') as logf:
-	 with open(log+extension, 'w') as outf:
+	 with open(get_out_filename(log, xdirectory, extension), 'w') as outf:
 	    for line in logf:
 	       result = prsr.parse(line)
 	       outf.write(formatter(result))
    except Exception as e:
       logging.error('Error parsing log files: %s\n%s',\
          e, traceback.format_exc())
+
+def get_out_filename(log, outdir, outext):
+   if outdir == outext and outdir == None:
+     return log+'.out'
+   elif outdir == None:
+     return log+outext
+   elif outext == None:
+     return outdir+'/'+os.path.basename(log)
+   else:
+     return outdir+'/'+os.path.basename(log)+outext
 
 
 def parse_line(line):
@@ -67,7 +79,7 @@ def main():
    parser_class = get_class(args.parser)
 
    formatter = eval(args.format)    
-   pool = Pool(args.threads, initializer, (parser_class, formatter, args.output))
+   pool = Pool(args.threads, initializer, (parser_class, formatter, args.outextension, args.outdirectory))
    try:
       if args.directory:  # Parsing 1 or more files
          args.logs = glob.glob(args.directory + '/*' + args.extension)
@@ -91,7 +103,8 @@ if __name__ == "__main__":
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-d', '--directory', help='directory containing log files')
     parser.add_argument('-e', '--extension', default='', help='log file extension (for use with --directory option).')
-    parser.add_argument('-x', '--output', default='', help='output file extension (for use with --directory option).')
+    parser.add_argument('-o', '--outdirectory', default=None, help='output file directory (for use with --directory option).')
+    parser.add_argument('-x', '--outextension', default='', help='output file extension (for use with --directory option).')
     parser.add_argument('-t', '--threads', default=None, type=int, help='number of threads to user')
     parser.add_argument('-c', '--chunk', default=20, help='chunk size to assign to each thread')
     parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
