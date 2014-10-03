@@ -91,6 +91,7 @@ def main():
 	 for result in results:
 	    args.outfile.write(result)
    except KeyboardInterrupt:
+      pool.terminate()
       sys.exit()
 
 if __name__ == "__main__":
@@ -104,12 +105,19 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--directory', help='directory containing log files')
     parser.add_argument('-e', '--extension', default='', help='log file extension (for use with --directory option).')
     parser.add_argument('-o', '--outdirectory', default=None, help='output file directory (for use with --directory option).')
-    parser.add_argument('-x', '--outextension', default='', help='output file extension (for use with --directory option).')
+    parser.add_argument('-x', '--outextension', default=None, help='output file extension (for use with --directory option).')
     parser.add_argument('-t', '--threads', default=None, type=int, help='number of threads to user')
     parser.add_argument('-c', '--chunk', default=20, help='chunk size to assign to each thread')
     parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
     parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')
     args = parser.parse_args()
+
+    if args.outdirectory != None and not os.path.isdir(args.outdirectory):
+        try:
+            os.makedirs(args.outdirectory)
+        except Exception as e:
+            logging.error('Error making output directory: %s' % args.outdirectory)
+            sys.exit(-1)
 
     # set up logging
     if args.quiet:
