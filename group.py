@@ -50,7 +50,9 @@ def group(infile, outfile, group_col, action, action_col, delimiter):
 		groups[g] = command.on_row(groups[g], chunks[action_col])
 	   except Exception as e:
            	logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
-		
+
+	if delimiter == None:
+		delimiter = ' '		
 	for key in sorted(groups.keys()):
 		outfile.write(key+delimiter+command.on_finish(groups[key])+'\n')
 		
