@@ -37,13 +37,17 @@ commands = {
 }
 
 
-def group(infile, outfile, group_col, action, action_col, delimiter):
+def group(infile, outfile, group_col, action, action_col=-1, delimiter=None, fuzzy=None):
 	command = commands[action]
+        if fuzzy:
+		fuzzy = eval(fuzzy)
 	groups = {}
 	for line in infile:
            try:
 		chunks = line.rstrip().split(delimiter)
 		g = chunks[group_col]
+		if fuzzy:
+			g = fuzzy(g)
 		if g not in groups:
 			groups[g] = copy.copy(command.init)
 
@@ -54,11 +58,11 @@ def group(infile, outfile, group_col, action, action_col, delimiter):
 	if delimiter == None:
 		delimiter = ' '		
 	for key in sorted(groups.keys()):
-		outfile.write(key+delimiter+command.on_finish(groups[key])+'\n')
+		outfile.write(str(key)+delimiter+command.on_finish(groups[key])+'\n')
 		
 
 def main():
-    group(args.infile, args.outfile, args.group_col, args.action, args.action_col, args.delimiter)
+    group(args.infile, args.outfile, args.group_col, args.action, args.action_col, args.delimiter, args.fuzzy)
 
 if __name__ == "__main__":
     # set up command line args
@@ -69,6 +73,7 @@ if __name__ == "__main__":
     parser.add_argument('action_col', nargs='?', type=int, default=0, help='Column to act upon')
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
+    parser.add_argument('-f', '--fuzzy', default=None, help='Fuzz the grouping')
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
     parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')
