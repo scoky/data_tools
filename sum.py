@@ -5,13 +5,13 @@ import argparse
 import sys
 import traceback
 import os
-from decimal import Decimal
+from input_handling import findNumber
 
 def main():
     total = 0
     for line in args.infile:
 	try:
-	   total += Decimal(line.split(args.delimiter)[args.column].rstrip())
+	   total += findNumber(line.split(args.delimiter)[args.column].rstrip())
 	except Exception as e:
            logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())	
     args.outfile.write(str(total)+'\n')
