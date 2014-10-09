@@ -6,7 +6,7 @@ import sys
 import traceback
 import os
 import copy
-from decimal import Decimal
+from input_handling import findNumber
 from math import sqrt
 from math import pow
 
@@ -25,15 +25,15 @@ class PerformReturn(object):
 		return a
 
 commands = {
-'max' : 	Command(0, lambda a,b: max(a,Decimal(b)), lambda a: str(a)),
-'min' : 	Command(sys.maxint, lambda a,b: min(a, Decimal(b)), lambda a: str(a)),
-'mean' : 	Command([], PerformReturn(lambda a,b: a.append(Decimal(b))).perform, lambda a: str(sum(a)/len(a))),
-'sum' : 	Command(0, lambda a,b: a+Decimal(b), lambda a: str(a)),
+'max' : 	Command(0, lambda a,b: max(a,findNumber(b)), lambda a: str(a)),
+'min' : 	Command(sys.maxint, lambda a,b: min(a, findNumber(b)), lambda a: str(a)),
+'mean' : 	Command([], PerformReturn(lambda a,b: a.append(findNumber(b))).perform, lambda a: str(sum(a)/len(a))),
+'sum' : 	Command(0, lambda a,b: a+findNumber(b), lambda a: str(a)),
 'count' : 	Command(0, lambda a,b: a+1, lambda a: str(a)),
 'unique' : 	Command(set(), PerformReturn(lambda a,b: a.add(b)).perform, lambda a: str(len(a))),
 'aggregate' : 	Command([], PerformReturn(lambda a,b: a.append(b)).perform, lambda a: ' '.join(a)),
 #,
-#'distribution' : Command([], PerformReturn(lambda a,b: a.append(Decimal(b))).perform, lambda a: str(
+#'distribution' : Command([], PerformReturn(lambda a,b: a.append(findNumber(b))).perform, lambda a: str(
 }
 
 

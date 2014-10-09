@@ -6,16 +6,16 @@ import sys
 import traceback
 import os
 import re
-from decimal import *
+from input_handling import findNumber
 
 def compute(infile, outfile, expression):
     # Pattern to pull out integers which represent columns
     pattern = re.compile("(\d+)")
     # Replace integers with indices into an array and convert to a lambda expression
-    expression = eval('lambda c: '+ pattern.sub(r'Decimal(c[\1])', args.expression))
+    expression = eval('lambda c: '+ pattern.sub(r'findNumber(c[\1])', args.expression))
     for line in infile:
-        try:
-	    chunks = line.rstrip().split()
+        chunks = line.rstrip().split()
+        try:    
 	    # Evaluate lambda with the row input from the file
 	    outfile.write('%s\n' % expression(chunks))
     	except Exception as e:
