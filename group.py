@@ -7,8 +7,8 @@ import traceback
 import os
 import copy
 from input_handling import findNumber
-from math import sqrt
-from math import pow
+import math
+import numpy
 
 class Command(object):
 	def __init__(self, init, on_row, on_finish):
@@ -31,7 +31,7 @@ commands = {
 'sum' : 	Command(0, lambda a,b: a+findNumber(b), lambda a: str(a)),
 'count' : 	Command(0, lambda a,b: a+1, lambda a: str(a)),
 'unique' : 	Command(set(), PerformReturn(lambda a,b: a.add(b)).perform, lambda a: str(len(a))),
-'aggregate' : 	Command([], PerformReturn(lambda a,b: a.append(b)).perform, lambda a: ' '.join(a)),
+'aggregate' : 	Command([], PerformReturn(lambda a,b: a.append(b)).perform, lambda a: ' '.join(a))
 #,
 #'distribution' : Command([], PerformReturn(lambda a,b: a.append(findNumber(b))).perform, lambda a: str(
 }

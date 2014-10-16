@@ -1,30 +1,60 @@
 #!/usr/bin/python
 
-import sys
 import os
+import sys
+import logging
+import argparse
+import traceback
+from input_handling import findNumber
 
-def test():
-	dict = set()
-	i = 1
-	IN = True
-	if sys.argv[i] == "not":
-		IN = False
-		i += 1
-	first = True
-	while i+1 < len(sys.argv):
-	        f = open(sys.argv[i], "r")
-		index = int(sys.argv[i+1])
-		for line in f:
-			chunks = line.rstrip().split()
-			key = chunks[index]
-		
-			if first:			
-				dict.add(key)
-			elif (IN and key in dict) or (not IN and key not in dict):
-				print line.rstrip()
-		first = False
-		f.close()
-		i += 2
+def compareIn(infile, outfile, column, elements, testIn=True, delimiter=None):
+	for line in infile:
+	   try:
+		c = line.rstrip().split(delimiter)[column]
+		if (testIn and c in elements) or (not testIn and c not in elements):
+			outfile.write(line)
+	   except Exception as e:
+           	logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
 
-test()
+def main():
+    elements = set(args.list)
+    if args.listfiles:
+       for listfile in args.listfiles:
+	  with open(listfile, 'r') as f:
+	     for line in f:
+		elements.add(line.rstrip())
+
+
+    compareIn(args.infile, args.outfile, args.column, elements, not args.notin, args.delimiter)
+
+if __name__ == "__main__":
+    # set up command line args
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
+                                     description='Output rows where column is in list')
+    parser.add_argument('list', nargs='*', help='List of elements')
+    parser.add_argument('-l', '--listfiles', nargs='+', help='Files containing list elements, one per line.')
+    parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
+    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
+    parser.add_argument('-c', '--column', type=int, default=0)
+    parser.add_argument('-n', '--notin', action='store_true', default=False)
+    parser.add_argument('-d', '--delimiter', default=None)
+#    parser.add_argument('-f', '--findNumber', action='store_true', default=False, help='find number in column values')
+    parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
+    parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')
+    args = parser.parse_args()
+
+    # set up logging
+    if args.quiet:
+        level = logging.WARNING
+    elif args.verbose:
+        level = logging.DEBUG
+    else:
+        level = logging.INFO
+    logging.basicConfig(
+        format = "%(levelname) -10s %(asctime)s %(module)s:%(lineno) -7s %(message)s",
+        level = level
+    )
+
+    main()
+
 
