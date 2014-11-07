@@ -1,44 +1,25 @@
 #!/usr/bin/python
 
+import os
+import sys
+import maxminddb
 import logging
 import argparse
-import sys
 import traceback
-import os
-import re
-import socket
-from decimal import Decimal
-from decimal import InvalidOperation
-
-number_pattern = re.compile("(-?\d+\.?\d*)")
-ip_pattern = re.compile("(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})")
-
-# Search an input value for a number
-def findNumber(value):
-   try:
-     return Decimal(value)
-   except InvalidOperation as e:
-     return Decimal(number_pattern.search(value).group())
-
-def findIPAddress(value):
-   m = ip_pattern.search(value)
-   if m:
-	return m.group()
-   return socket.gethostbyname(value)
+from input_handling import findIPAddress
 
 if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Parse input base upon available functions')
+                                     description='Determine the country ISO code of domain name or IP address')
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--columns', nargs='+', type=int, default='0')
-    parser.add_argument('-f', '--function', choices=['findNumber'], default='findNumber')
+    parser.add_argument('-g', '--geoip', default='geoip.mmdb', help='geoip database file to use')
+    parser.add_argument('-c', '--column', type=int, default=0)
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
     parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')
     args = parser.parse_args()
-    args.function = getattr(sys.modules[__name__], args.function)
 
     # set up logging
     if args.quiet:
@@ -53,10 +34,13 @@ if __name__ == "__main__":
     )
 
     jdelim = args.delimiter if args.delimiter != None else ' '
+    rdr = maxminddb.Reader(args.geoip)
     for line in args.infile:
-      try:
-	chunks = line.rstrip().split(args.delimiter)
-	args.outfile.write(jdelim.join([str(args.function(chunks[i])) for i in args.columns])+'\n')
-      except Exception as e:
-        logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
-    
+        try:
+    	   chunk = line.split(args.delimiter)[args.column].rstrip()
+  	   ip = findIPAddress(chunk)
+	   record = rdr.get(ip)
+	   args.outfile.write(ip+jdelim+record['country']['iso_code']+'\n')
+	except Exception as e:
+           logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
+
