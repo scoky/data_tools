@@ -39,8 +39,11 @@ if __name__ == "__main__":
         try:
     	   chunk = line.split(args.delimiter)[args.column].rstrip()
   	   ip = findIPAddress(chunk)
-	   record = rdr.get(ip)
-	   args.outfile.write(ip+jdelim+record['country']['iso_code']+'\n')
+	   try:
+	      record = rdr.get(ip)
+	      args.outfile.write(chunk+jdelim+record['country']['iso_code']+'\n')
+	   except:
+	      args.outfile.write(chunk+jdelim+'ERROR\n')
 	except Exception as e:
            logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
 
