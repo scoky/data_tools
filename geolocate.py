@@ -38,8 +38,8 @@ if __name__ == "__main__":
     for line in args.infile:
         try:
     	   chunk = line.split(args.delimiter)[args.column].rstrip()
-  	   ip = findIPAddress(chunk)
 	   try:
+  	      ip = findIPAddress(chunk)
 	      record = rdr.get(ip)
 	      args.outfile.write(chunk+jdelim+record['country']['iso_code']+'\n')
 	   except:
