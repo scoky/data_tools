@@ -6,6 +6,7 @@ import logging
 import argparse
 import traceback
 from decimal import Decimal
+from input_handling import findNumber
 
 def percentile(rows, pts=[0, 0.25, 0.5, 0.75, 100], keys=0, values=0):
     maximum = rows[-1][values]
@@ -25,7 +26,7 @@ def percentileFile(infile, outfile, pts=[0, 0.25, 0.5, 0.75, 100], keys=0, value
     for line in infile:
         try:
     	   chunks = line.rstrip().split(delimiter)
-	   rows.append([chunks[keys], float(chunks[values])])
+	   rows.append([chunks[keys], findNumber(chunks[values])])
 	except Exception as e:
            logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
     for val in percentile(rows, pts=pts, keys=0, values=1):
@@ -39,7 +40,7 @@ if __name__ == "__main__":
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-k', '--keys', type=int, default=0)
     parser.add_argument('-a', '--values', type=int, default=0)
-    parser.add_argument('-p', '--percentiles', nargs='+', type=float, default=[0, 0.25, 0.5, 0.75, 100])
+    parser.add_argument('-p', '--percentiles', nargs='+', type=Decimal, default=[0, 0.25, 0.5, 0.75, 100])
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
     parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')

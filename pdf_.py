@@ -3,8 +3,7 @@
 import sys
 import os
 import re
-import urllib
-from decimal import *
+from decimal import Decimal
 
 def test():
 	items = {}

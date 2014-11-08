@@ -10,11 +10,18 @@ import socket
 from decimal import Decimal
 from decimal import InvalidOperation
 
-number_pattern = re.compile("(-?\d+\.?\d*)")
+number_pattern = re.compile("(-?\d+\.?\d*(e[\+|\-]?\d+)?)", re.IGNORECASE)
 ip_pattern = re.compile("(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})")
 
 # Search an input value for a number
 def findNumber(value):
+   try:
+     return Decimal(value)
+   except InvalidOperation as e:
+     return Decimal(number_pattern.search(value).group())
+
+# Search an input value for a number
+def findSignificantNumber(value, digits):
    try:
      return Decimal(value)
    except InvalidOperation as e:
@@ -25,6 +32,14 @@ def findIPAddress(value):
    if m:
 	return m.group()
    return socket.gethostbyname(value)
+
+def parseLines(infile, delimiter=None, columns=[0], function=findNumber):
+  for line in infile:
+     try:
+        chunks = line.rstrip().split(delimiter)
+	yield [function(chunks[i] for i in columns)]
+     except Exception as e:
+        logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
 
 if __name__ == "__main__":
     # set up command line args

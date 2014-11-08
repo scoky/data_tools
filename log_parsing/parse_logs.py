@@ -55,7 +55,7 @@ def get_out_filename(log, outdir, outext):
 
 
 def parse_line(line):
-   logging.info('Parsing line on (pid=%s)', log, os.getpid())
+   logging.info('Parsing line on (pid=%s)', os.getpid())
    result = parser.parse(line)
    output = formatter(result)
    return output
