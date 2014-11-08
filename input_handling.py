@@ -37,7 +37,7 @@ def parseLines(infile, delimiter=None, columns=[0], function=findNumber):
   for line in infile:
      try:
         chunks = line.rstrip().split(delimiter)
-	yield [function(chunks[i] for i in columns)]
+	yield [function(chunks[i]) for i in columns]
      except Exception as e:
         logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
 
@@ -47,7 +47,7 @@ if __name__ == "__main__":
                                      description='Parse input base upon available functions')
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--columns', nargs='+', type=int, default='0')
+    parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
     parser.add_argument('-f', '--function', choices=['findNumber'], default='findNumber')
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
@@ -68,10 +68,6 @@ if __name__ == "__main__":
     )
 
     jdelim = args.delimiter if args.delimiter != None else ' '
-    for line in args.infile:
-      try:
-	chunks = line.rstrip().split(args.delimiter)
-	args.outfile.write(jdelim.join([str(args.function(chunks[i])) for i in args.columns])+'\n')
-      except Exception as e:
-        logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
+    for vals in parseLines(args.infile, delimiter=args.delimiter, columns=args.columns, function=args.function):
+      args.outfile.write(jdelim.join(map(str,vals))+'\n')
     

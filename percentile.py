@@ -8,7 +8,24 @@ import traceback
 from decimal import Decimal
 from input_handling import findNumber
 
-def percentile(rows, pts=[0, 0.25, 0.5, 0.75, 100], keys=0, values=0):
+class PercentileCommand(object):
+  def __init__(self, cols, pt=0.5):
+    self.rows = [[] for i in range(cols)]
+    self.pt = pt
+
+  def on_row(self, row):
+    map(self.append, self.rows, row)
+
+  def append(self, val1, val2):
+    return val1.append(val2)
+
+  def on_finish(self):
+    return map(self.median, self.rows)
+
+  def median(self, val1):
+    return sorted(val1)[len(val1)*pt]
+
+def percentile(rows, pts=[0, 0.25, 0.5, 0.75, 1], keys=0, values=0):
     maximum = rows[-1][values]
     pt = 0
     for r in rows:       
@@ -21,7 +38,7 @@ def percentile(rows, pts=[0, 0.25, 0.5, 0.75, 100], keys=0, values=0):
        yield rows[-1][keys]
        pt += 1
 
-def percentileFile(infile, outfile, pts=[0, 0.25, 0.5, 0.75, 100], keys=0, values=0, delimiter=None):
+def percentileFile(infile, outfile, pts=[0, 0.25, 0.5, 0.75, 1], keys=0, values=0, delimiter=None):
     rows = []
     for line in infile:
         try:
@@ -40,7 +57,7 @@ if __name__ == "__main__":
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-k', '--keys', type=int, default=0)
     parser.add_argument('-a', '--values', type=int, default=0)
-    parser.add_argument('-p', '--percentiles', nargs='+', type=Decimal, default=[0, 0.25, 0.5, 0.75, 100])
+    parser.add_argument('-p', '--percentiles', nargs='+', type=Decimal, default=[0, 0.25, 0.5, 0.75, 1])
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
     parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')
