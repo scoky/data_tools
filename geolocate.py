@@ -42,8 +42,9 @@ if __name__ == "__main__":
   	      ip = findIPAddress(chunk)
 	      record = rdr.get(ip)
 	      args.outfile.write(chunk+jdelim+record['country']['iso_code']+'\n')
-	   except:
+           except Exception as e:
+	      logging.error('Error on value: %s, %s\n%s', chunk, e, traceback.format_exc())
 	      args.outfile.write(chunk+jdelim+'ERROR\n')
 	except Exception as e:
-           logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
+           logging.error('Error on input: %s, %s\n%s', line, e, traceback.format_exc())
 
