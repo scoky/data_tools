@@ -11,9 +11,11 @@ import time
 BUFSIZE = 1024
 
 def connect(address, port):
+    before = time.time()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((address, port))
-    print s.getsockname()[0], ':', s.getsockname()[1], ' -> ', address, ':', port
+    after = time.time() - before
+    print s.getsockname()[0], ':', s.getsockname()[1], ' -> ', address, ':', port, 'in', '%.3f' % after, 'seconds'
     return s
 
 if __name__ == "__main__":
