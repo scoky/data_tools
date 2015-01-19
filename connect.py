@@ -34,7 +34,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
                                      description='Connect to an address and wait.')
     parser.add_argument('address', default=None, help='ex: localhost:1234')
-    parser.add_argument('-s', '--send', default=0, help='number of bytes to send')
+    parser.add_argument('-s', '--send', default=0, type=int, help='number of bytes to send')
     parser.add_argument('-l', '--listen', action='store_true', default=False, help='listen instead of connect')
     parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
     parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')
@@ -61,5 +61,6 @@ if __name__ == "__main__":
     try:
 	time.sleep(86400)
     except KeyboardInterrupt:
+	sock.shutdown()
 	sock.close()
         sys.exit()
