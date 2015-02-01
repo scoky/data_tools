@@ -45,7 +45,10 @@ def parseLines(infile, delimiter=None, columns=[0], function=findNumber):
 def fileRange(startFile, endFile):
   startDir, startFile = os.path.split(startFile)
   _, endFile = os.path.split(endFile)
-  files = glob.iglob(startDir + '/*');
+  if startDir == '':
+	files = glob.iglob('*');
+  else:
+	files = glob.iglob(startDir + '/*');
   ret = []
   for fn in files:
     if fn >= startFile and fn <= endFile:
