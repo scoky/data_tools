@@ -52,6 +52,9 @@ def fileRange(startFile, endFile):
       ret.append(fn)
   return sorted(fn)
 
+def openFile(filename, opts):
+  return gzip.open(filename, opts+'b') if filename.endswith('.gz') else open(filename, opts)
+
 if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
