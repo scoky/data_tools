@@ -7,6 +7,7 @@ import traceback
 import os
 import re
 import socket
+import glob
 from decimal import Decimal
 from decimal import InvalidOperation
 
@@ -40,6 +41,16 @@ def parseLines(infile, delimiter=None, columns=[0], function=findNumber):
 	yield [function(chunks[i]) for i in columns]
      except Exception as e:
         logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
+
+def fileRange(startFile, endFile):
+  startDir, startFile = os.path.split(startFile)
+  _, endFile = os.path.split(endFile)
+  files = glob.iglob(startDir + '/*');
+  ret = []
+  for fn in files:
+    if fn >= startFile and fn <= endFile:
+      ret.append(fn)
+  return sorted(fn)
 
 if __name__ == "__main__":
     # set up command line args
