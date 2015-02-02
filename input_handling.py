@@ -51,9 +51,9 @@ def fileRange(startFile, endFile):
 	files = glob.iglob(startDir + '/*');
   ret = []
   for fn in files:
-    if fn >= startFile and fn <= endFile:
+    if os.path.basename(fn) >= startFile and os.path.basename(fn) <= endFile:
       ret.append(fn)
-  return sorted(fn)
+  return sorted(ret)
 
 def openFile(filename, opts):
   return gzip.open(filename, opts+'b') if filename.endswith('.gz') else open(filename, opts)
