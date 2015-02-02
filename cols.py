@@ -11,9 +11,10 @@ def columns(infile, outfile, cols, delimiter):
     for line in infile:
         try:
 	    chunks = line.rstrip().split(delimiter)
-	    outfile.write(jdelim.join([chunks[i] for i in cols])+'\n')
 	except Exception as e:
             logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
+	    continue
+	outfile.write(jdelim.join([chunks[i] for i in cols])+'\n')
 
 def main():
     columns(args.infile, args.outfile, args.columns, args.delimiter)
