@@ -7,38 +7,28 @@ import argparse
 import traceback
 from decimal import Decimal
 from input_handling import findNumber
+from command import Command
 
-class PercentileCommand(object):
-  def __init__(self, cols, pt=0.5):
-    self.rows = [[] for i in range(cols)]
-    self.pt = pt
+DEFAULT_PCT = map(Decimal, [0, 0.01, 0.25, 0.5, 0.75, 0.99, 1])
 
-  def on_row(self, row):
-    map(self.append, self.rows, row)
+class PercentileCommand(Command):
+  def __init__(self, pts=DEFAULT_PCT):
+    super(PercentileCommand, self).__init__([], self.def_on_row, self.def_on_finish)
+    self.pts = pts
 
-  def append(self, val1, val2):
-    return val1.append(val2)
+  def def_on_row(self, g, lst, val):
+    lst.append([val, findNumber(val)])
+    return lst
 
-  def on_finish(self):
-    return map(self.median, self.rows)
+  def def_on_finish(self, g, lst):
+    return ' '.join(percentile(lst, pts=self.pts, keys=0, values=1))
 
-  def median(self, val1):
-    return sorted(val1)[len(val1)*pt]
+def percentile(rows, pts=DEFAULT_PCT, keys=0, values=0):
+    rows = sorted(rows, key = lambda l: l[values])
+    indices = [int(pt*(len(rows)-1)) for pt in pts]
+    return [rows[index][keys] for index in indices]
 
-def percentile(rows, pts=[0, 0.25, 0.5, 0.75, 1], keys=0, values=0):
-    maximum = rows[-1][values]
-    pt = 0
-    for r in rows:       
-       while r[values] >= pts[pt]*maximum:
-          yield r[keys]
-          pt += 1
-          if pt >= len(pts):
-             break
-    while pt < len(pts):
-       yield rows[-1][keys]
-       pt += 1
-
-def percentileFile(infile, outfile, pts=[0, 0.25, 0.5, 0.75, 1], keys=0, values=0, delimiter=None):
+def percentileFile(infile, outfile, pts=DEFAULT_PCT, keys=0, values=0, delimiter=None):
     rows = []
     for line in infile:
         try:
@@ -57,7 +47,7 @@ if __name__ == "__main__":
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-k', '--keys', type=int, default=0)
     parser.add_argument('-a', '--values', type=int, default=0)
-    parser.add_argument('-p', '--percentiles', nargs='+', type=Decimal, default=[0, 0.25, 0.5, 0.75, 1])
+    parser.add_argument('-p', '--percentiles', nargs='+', type=Decimal, default=DEFAULT_PCT)
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
     parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')

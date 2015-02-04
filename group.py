@@ -6,32 +6,21 @@ import sys
 import traceback
 import os
 import copy
-from input_handling import findNumber
 import math
 import numpy
-
-class Command(object):
-	def __init__(self, init, on_row, on_finish):
-		self.init = init
-		self.on_row = on_row
-		self.on_finish = on_finish
-
-class PerformReturn(object):
-	def __init__(self, action):
-		self.action = action
-
-	def perform(self, a,b):
-		self.action(a,b)
-		return a
+from input_handling import findNumber
+from command import Command,PerformReturn
+from percentile import PercentileCommand
 
 commands = {
-'max' : 	Command(0, lambda a,b: max(a,findNumber(b)), lambda a: str(a)),
-'min' : 	Command(sys.maxint, lambda a,b: min(a, findNumber(b)), lambda a: str(a)),
-'mean' : 	Command([], PerformReturn(lambda a,b: a.append(findNumber(b))).perform, lambda a: str(sum(a)/len(a))),
-'sum' : 	Command(0, lambda a,b: a+findNumber(b), lambda a: str(a)),
-'count' : 	Command(0, lambda a,b: a+1, lambda a: str(a)),
-'unique' : 	Command(set(), PerformReturn(lambda a,b: a.add(b)).perform, lambda a: str(len(a))),
-'aggregate' : 	Command([], PerformReturn(lambda a,b: a.append(b)).perform, lambda a: ' '.join(a))
+'max' : 	Command(0, lambda g,a,b: max(a,findNumber(b)), lambda g,a: str(a)),
+'min' : 	Command(sys.maxint, lambda g,a,b: min(a, findNumber(b)), lambda g,a: str(a)),
+'mean' : 	Command([], PerformReturn(lambda g,a,b: a.append(findNumber(b))).perform, lambda g,a: str(sum(a)/len(a))),
+'sum' : 	Command(0, lambda g,a,b: a+findNumber(b), lambda g,a: str(a)),
+'count' : 	Command(0, lambda g,a,b: a+1, lambda g,a: str(a)),
+'unique' : 	Command(set(), PerformReturn(lambda g,a,b: a.add(b)).perform, lambda g,a: str(len(a))),
+'aggregate' : 	Command([], PerformReturn(lambda g,a,b: a.append(b)).perform, lambda g,a: ' '.join(a)),
+'percentile' :	PercentileCommand()
 #,
 #'distribution' : Command([], PerformReturn(lambda a,b: a.append(findNumber(b))).perform, lambda a: str(
 }
@@ -51,14 +40,14 @@ def group(infile, outfile, group_col, action, action_col=-1, delimiter=None, fuz
 		if g not in groups:
 			groups[g] = copy.copy(command.init)
 
-		groups[g] = command.on_row(groups[g], chunks[action_col])
+		groups[g] = command.on_row(g, groups[g], chunks[action_col])
 	   except Exception as e:
            	logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
 
 	if delimiter == None:
 		delimiter = ' '		
-	for key in sorted(groups.keys()):
-		outfile.write(str(key)+delimiter+command.on_finish(groups[key])+'\n')
+	for g in sorted(groups.keys()):
+		outfile.write(str(g)+delimiter+command.on_finish(g, groups[g])+'\n')
 		
 
 def main():
