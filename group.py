@@ -20,7 +20,8 @@ commands = {
 'count' : 	Command(0, lambda g,a,b: a+1, lambda g,a: str(a)),
 'unique' : 	Command(set(), PerformReturn(lambda g,a,b: a.add(b)).perform, lambda g,a: str(len(a))),
 'aggregate' : 	Command([], PerformReturn(lambda g,a,b: a.append(b)).perform, lambda g,a: ' '.join(a)),
-'percentile' :	PercentileCommand()
+'percentile' :	PercentileCommand(),
+'fit' : 	FitCommand()
 #,
 #'distribution' : Command([], PerformReturn(lambda a,b: a.append(findNumber(b))).perform, lambda a: str(
 }
