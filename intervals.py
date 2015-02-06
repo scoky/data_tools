@@ -8,22 +8,23 @@ import traceback
 from decimal import Decimal
 from input_handling import findNumber
 from command import Command
-import scipy.stats
 
-class FitCommand(Command):
-  def __init__(self, dist='norm'):
-    super(FitCommand, self).__init__([], self.def_on_row, self.def_on_finish)
-    self.dist = getattr(scipy.stats, dist)
+class IntervalCommand(Command):
+  def __init__(self):
+    super(IntervalCommand, self).__init__([None, []], self.def_on_row, self.def_on_finish)
 
   def def_on_row(self, g, lst, val):
-    lst.append(findNumber(val))
+    val=findNumber(val)
+    if lst[0] != None:
+      lst[1].append(val-lst[0])
+    lst[0]=val
     return lst
 
   def def_on_finish(self, g, lst):
-    return ' '.join(map(str, self.dist.fit(map(float,lst)))) + ' ' + ' '.join(map(str,scipy.stats.kstest(map(float, lst), self.dist.cdf)))
+    return ' '.join(map(str, lst[1]))
 
-def fitFile(infile, outfile, col=0, dist='norm', delimiter=None):
-    comm = FitCommand(dist)
+def intervalFile(infile, outfile, col=0, delimiter=None):
+    comm = IntervalCommand()
     rows = comm.init
     for line in infile:
         try:
@@ -31,16 +32,16 @@ def fitFile(infile, outfile, col=0, dist='norm', delimiter=None):
 	   comm.on_row(None, rows, chunks[col])
 	except Exception as e:
            logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
-    outfile.write(comm.on_finish(None, rows)+'\n')
+    for item in rows[1]:
+      outfile.write(str(item)+'\n')
 
 if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Compute the distribution fit to column in the input')
+                                     description='Compute the difference between subsequent elements in a column')
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-c', '--column', type=int, default=0)
-    parser.add_argument('-i', '--dist', default='norm')
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
     parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')
@@ -58,5 +59,5 @@ if __name__ == "__main__":
         level = level
     )
 
-    fitFile(args.infile, args.outfile, args.column, args.dist, args.delimiter)
+    intervalFile(args.infile, args.outfile, args.column, args.delimiter)
 

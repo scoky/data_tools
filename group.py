@@ -39,7 +39,7 @@ def group(infile, outfile, group_col, action, action_col=-1, delimiter=None, fuz
 		if fuzzy:
 			g = fuzzy(g)
 		if g not in groups:
-			groups[g] = copy.copy(command.init)
+			groups[g] = copy.deepcopy(command.init)
 
 		groups[g] = command.on_row(g, groups[g], chunks[action_col])
 	   except Exception as e:
