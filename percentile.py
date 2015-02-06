@@ -9,7 +9,7 @@ from decimal import Decimal
 from input_handling import findNumber
 from command import Command
 
-DEFAULT_PCT = map(Decimal, [0, 0.01, 0.25, 0.5, 0.75, 0.99, 1])
+DEFAULT_PCT = map(Decimal, ['0', '0.01', '0.25', '0.5', '0.75', '0.99', '1'])
 
 class PercentileCommand(Command):
   def __init__(self, pts=DEFAULT_PCT):
