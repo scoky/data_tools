@@ -11,6 +11,7 @@ import numpy
 from input_handling import findNumber
 from command import Command,PerformReturn
 from percentile import PercentileCommand
+from fit import FitCommand
 
 commands = {
 'max' : 	Command(0, lambda g,a,b: max(a,findNumber(b)), lambda g,a: str(a)),
