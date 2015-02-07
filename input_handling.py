@@ -8,11 +8,16 @@ import os
 import re
 import socket
 import glob
+import datetime
+import struct
 from decimal import Decimal
 from decimal import InvalidOperation
 
 number_pattern = re.compile("(-?\d+\.?\d*(e[\+|\-]?\d+)?)", re.IGNORECASE)
 ip_pattern = re.compile("(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})")
+
+def findIdentity(value):
+   return value
 
 # Search an input value for a number
 def findNumber(value):
@@ -34,12 +39,32 @@ def findIPAddress(value):
 	return m.group()
    return socket.gethostbyname(value)
 
-def parseLines(infile, delimiter=None, columns=[0], function=findNumber):
+def IPfromString(ip):
+   return struct.unpack("!I", socket.inet_aton(ip))[0]
+
+def IPtoString(ip):
+   return socket.inet_ntoa(struct.pack("!I", ip))
+
+def MACfromString(mac):
+   return int(mac.replace(':', ''), 16)
+
+def MACtoString(cls, mac):
+   raise Exception('Not Implemented')
+
+def ToUnixTime(dt):
+   epoch = datetime.datetime.utcfromtimestamp(0)
+   delta = dt - epoch
+   return delta.days*86400 + delta.seconds
+
+def ToDateTime(dt):
+   return datetime.datetime.utcfromtimestamp(dt)
+
+def parseLines(infile, delimiter=None, columns=[0], function=findIdentity):
   for line in infile:
      try:
         chunks = line.rstrip().split(delimiter)
 	yield [function(chunks[i]) for i in columns]
-     except Exception as e:
+     except IndexError as e:
         logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
 
 def fileRange(startFile, endFile):
