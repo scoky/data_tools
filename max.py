@@ -5,7 +5,7 @@ import sys
 import logging
 import argparse
 import traceback
-from input_handling import parseLines
+from input_handling import parseLines,findNumber
 from decimal import Decimal
 
 class MaxCommand(object):
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     )
 
     maxc = MaxCommand(len(args.columns))
-    for out in parseLines(args.infile, delimiter=args.delimiter, columns=args.columns):
+    for out in parseLines(args.infile, delimiter=args.delimiter, columns=args.columns, function=findNumber):
       maxc.on_row(out)
     jdelim = args.delimiter if args.delimiter != None else ' '
     args.outfile.write(jdelim.join(map(str, maxc.on_finish()))+'\n')

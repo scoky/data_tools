@@ -5,7 +5,7 @@ import sys
 import logging
 import argparse
 import traceback
-from input_handling import parseLines
+from input_handling import parseLines,findNumber
 from decimal import Decimal
 
 class MinCommand(object):
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     )
 
     minc = MinCommand(len(args.columns))
-    for out in parseLines(args.infile, delimiter=args.delimiter, columns=args.columns):
+    for out in parseLines(args.infile, delimiter=args.delimiter, columns=args.columns, function=findNumber):
       minc.on_row(out)
     jdelim = args.delimiter if args.delimiter != None else ' '
     args.outfile.write(jdelim.join(map(str, minc.on_finish()))+'\n')
