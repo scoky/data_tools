@@ -8,14 +8,14 @@ import sys
 def bron_kerbosch(R, P, X, g):
     if not any((P, X)):
         yield R
-    for v in P[:]:
+    for v in set(P):
         n = neighbor(v, g)
         R_v = R | set([v])
         P_v = P & n
         X_v = X & n
         for r in bron_kerbosch(R_v, P_v, X_v, g):
             yield r
-        P.discard(v)
+        P.remove(v)
         X.add(v)
 
 def neighbor(i, g):
