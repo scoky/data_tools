@@ -7,6 +7,7 @@ import logging
 import argparse
 import traceback
 from input_handling import findNumber
+from decimal import Decimal
 
 def compare(infile, outfile, statement, delimiter):
 	for line in infile:
