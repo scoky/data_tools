@@ -13,6 +13,15 @@ from command import Command,PerformReturn
 from percentile import PercentileCommand
 from fit import FitCommand
 
+def group_sorted_input(infile, func, group_cols=[0], delimiter=None):
+    tup = None
+    
+    for line in infile:
+        chunks = line.rstrip().split(delimiter)
+        ntup = [chunks[g] for f in group_cols]
+        if tup == None and tup != ntup:
+            pass
+
 commands = {
 'max' : 	Command(0, lambda g,a,b: max(a,findNumber(b)), lambda g,a: str(a)),
 'min' : 	Command(sys.maxint, lambda g,a,b: min(a, findNumber(b)), lambda g,a: str(a)),
