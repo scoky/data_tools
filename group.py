@@ -44,27 +44,41 @@ class SortedInputGrouper(object):
                 self.tup = ntup
                 return
         self.tup = None
+        
+        
+class Group(object):
+    def __init__(self, tup):
+        self.tup = tup
+        
+    def add(self, chunks):
+        pass
+        
+    def done(self):
+        pass
+    
+class UnsortedInputGrouper(object):
+    def __init__(self, infile, group_cls=Group, group_cols=[0], delimiter=None):
+        self.infile = infile
+        self.group_cols = group_cols
+        self.delimiter = delimiter
+        self.dict = {}
+        self.group_cls = group_cls
 
-def group_input():
-	entries = []
-	cur = None
-	for line in args.infile:
-		e = MergeEntry.parse(line)
-		if not e.mac:
-		   continue
-		e.time = int(e.time)
-		   
-		if cur != None and (e.client != cur.client or not e.query.equals(cur.query)):
-		    yield entries
-		    entries = []
-		cur = e
-		entries.append(e)
-		
-	if cur:
-	    yield entries
+    def group(self):
+        jdelim = ' ' if not self.delimiter else self.delimiter
+        keys = []
+        for line in self.infile:
+            chunks = line.rstrip().split(self.delimiter)
+            tup = [chunks[g] for g in self.group_cols]
+            key = jdelim.join(tup)
+            if key not in self.dict:
+                self.dict[key] = self.group_cls(tup)
+                keys.append(key)
+            self.dict[key].add(chunks)
+        for key in keys:
+            self.dict[key].done()
 
 commands = {
-'max' : 	Command(0, lambda g,a,b: max(a,findNumber(b)), lambda g,a: str(a)),
 'min' : 	Command(sys.maxint, lambda g,a,b: min(a, findNumber(b)), lambda g,a: str(a)),
 'mean' : 	Command([], PerformReturn(lambda g,a,b: a.append(findNumber(b))).perform, lambda g,a: str(sum(a)/len(a))),
 'sum' : 	Command(0, lambda g,a,b: a+findNumber(b), lambda g,a: str(a)),

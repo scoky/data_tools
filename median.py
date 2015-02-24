@@ -2,27 +2,25 @@
 
 import os
 import sys
-import logging
 import argparse
 import traceback
-from input_handling import parseLines
-from decimal import Decimal
+from input_handling import findNumber
+from group import Group,UnsortedInputGrouper
 
-class MedianCommand(object):
-  def __init__(self, cols):
-    self.rows = [[] for i in range(cols)]
+class MedianGroup(Group):
+    def __init__(self, tup):
+        super(MedianGroup, self).__init__(tup)
+        self.rows = [[] for i in args.columns]
 
-  def on_row(self, row):
-    map(self.append, self.rows, row)
+    def add(self, chunks):
+        vals = [findNumber(chunks[i]) for i in args.columns]
+        self.rows[:] = [r+[v] for v,r in zip(vals, self.rows)]
 
-  def append(self, val1, val2):
-    return val1.append(val2)
-
-  def on_finish(self):
-    return map(self.median, self.rows)
-
-  def median(self, val1):
-    return sorted(val1)[len(val1)/2]
+    def done(self):
+        jdelim = args.delimiter if args.delimiter != None else ' '
+        if len(self.tup) > 0:
+            args.outfile.write(jdelim.join(self.tup) + jdelim)
+        args.outfile.write(jdelim.join(map(str, [sorted(r)[len(r)/2] for r in self.rows])) + '\n')
 
 if __name__ == "__main__":
     # set up command line args
@@ -31,25 +29,9 @@ if __name__ == "__main__":
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
+    parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
-    parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')
     args = parser.parse_args()
 
-    # set up logging
-    if args.quiet:
-        level = logging.WARNING
-    elif args.verbose:
-        level = logging.DEBUG
-    else:
-        level = logging.INFO
-    logging.basicConfig(
-        format = "%(levelname) -10s %(asctime)s %(module)s:%(lineno) -7s %(message)s",
-        level = level
-    )
-
-    medianc = MedianCommand(len(args.columns))
-    for out in parseLines(args.infile, delimiter=args.delimiter, columns=args.columns):
-      medianc.on_row(out)
-    jdelim = args.delimiter if args.delimiter != None else ' '
-    args.outfile.write(jdelim.join(map(str, medianc.on_finish()))+'\n')
+    grouper = UnsortedInputGrouper(args.infile, MedianGroup, args.group, args.delimiter)
+    grouper.group()
