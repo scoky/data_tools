@@ -13,14 +13,55 @@ from command import Command,PerformReturn
 from percentile import PercentileCommand
 from fit import FitCommand
 
-def group_sorted_input(infile, func, group_cols=[0], delimiter=None):
-    tup = None
-    
-    for line in infile:
-        chunks = line.rstrip().split(delimiter)
-        ntup = [chunks[g] for f in group_cols]
-        if tup == None and tup != ntup:
-            pass
+class SortedInputGrouper(object):
+    def __init__(self, infile, group_cols=[0], delimiter=None):
+        self.infile = infile
+        self.group_cols = group_cols
+        self.delimiter = delimiter
+        self.tup = None
+        self.chunks = None
+
+    def group(self):
+        line = self.infile.readline()
+        if not line:
+            return
+        
+        self.chunks = line.rstrip().split(self.delimiter)
+        self.tup = [self.chunks[g] for g in self.group_cols]
+        while self.tup:
+            yield self._gather()
+                
+    def _gather(self):
+        # Yield the capture chunks
+        yield self.chunks
+        # Look for more matching the tuple
+        for line in self.infile:
+            self.chunks = line.rstrip().split(self.delimiter)
+            ntup = [self.chunks[g] for g in self.group_cols]
+            if ntup == self.tup:
+                yield self.chunks
+            else:
+                self.tup = ntup
+                return
+        self.tup = None
+
+def group_input():
+	entries = []
+	cur = None
+	for line in args.infile:
+		e = MergeEntry.parse(line)
+		if not e.mac:
+		   continue
+		e.time = int(e.time)
+		   
+		if cur != None and (e.client != cur.client or not e.query.equals(cur.query)):
+		    yield entries
+		    entries = []
+		cur = e
+		entries.append(e)
+		
+	if cur:
+	    yield entries
 
 commands = {
 'max' : 	Command(0, lambda g,a,b: max(a,findNumber(b)), lambda g,a: str(a)),
