@@ -10,8 +10,6 @@ import math
 import numpy
 from input_handling import findNumber
 from command import Command,PerformReturn
-from percentile import PercentileCommand
-from fit import FitCommand
 
 class SortedInputGrouper(object):
     def __init__(self, infile, group_cols=[0], delimiter=None):
@@ -79,14 +77,9 @@ class UnsortedInputGrouper(object):
             self.dict[key].done()
 
 commands = {
-'min' : 	Command(sys.maxint, lambda g,a,b: min(a, findNumber(b)), lambda g,a: str(a)),
-'mean' : 	Command([], PerformReturn(lambda g,a,b: a.append(findNumber(b))).perform, lambda g,a: str(sum(a)/len(a))),
 'sum' : 	Command(0, lambda g,a,b: a+findNumber(b), lambda g,a: str(a)),
-'count' : 	Command(0, lambda g,a,b: a+1, lambda g,a: str(a)),
 'unique' : 	Command(set(), PerformReturn(lambda g,a,b: a.add(b)).perform, lambda g,a: str(len(a))),
-'aggregate' : 	Command([], PerformReturn(lambda g,a,b: a.append(b)).perform, lambda g,a: ' '.join(a)),
-'percentile' :	PercentileCommand(),
-'fit' : 	FitCommand()
+'aggregate' : 	Command([], PerformReturn(lambda g,a,b: a.append(b)).perform, lambda g,a: ' '.join(a))
 #,
 #'distribution' : Command([], PerformReturn(lambda a,b: a.append(findNumber(b))).perform, lambda a: str(
 }

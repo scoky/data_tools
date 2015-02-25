@@ -2,36 +2,29 @@
 
 import os
 import sys
-import logging
 import argparse
 import traceback
-from decimal import Decimal
 from input_handling import findNumber
-from command import Command
+from group import Group,UnsortedInputGrouper
 import scipy.stats
 
-class FitCommand(Command):
-  def __init__(self, dist='norm'):
-    super(FitCommand, self).__init__([], self.def_on_row, self.def_on_finish)
-    self.dist = getattr(scipy.stats, dist)
+class FitGroup(Group):
+    def __init__(self, tup):
+        super(FitGroup, self).__init__(tup)
+        self.rows = [[] for i in args.columns]
 
-  def def_on_row(self, g, lst, val):
-    lst.append(findNumber(val))
-    return lst
+    def add(self, chunks):
+        vals = [float(findNumber(chunks[i])) for i in args.columns]
+        for v,r in zip(vals, self.rows):
+            r.append(v)
 
-  def def_on_finish(self, g, lst):
-    return ' '.join(map(str, self.dist.fit(map(float,lst)))) + ' ' + ' '.join(map(str,scipy.stats.kstest(map(float, lst), self.dist.cdf)))
-
-def fitFile(infile, outfile, col=0, dist='norm', delimiter=None):
-    comm = FitCommand(dist)
-    rows = comm.init
-    for line in infile:
-        try:
-    	   chunks = line.rstrip().split(delimiter)
-	   comm.on_row(None, rows, chunks[col])
-	except Exception as e:
-           logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
-    outfile.write(comm.on_finish(None, rows)+'\n')
+    def done(self):
+        jdelim = args.delimiter if args.delimiter != None else ' '
+        for c,r in zip(args.columns, self.rows):
+            if len(self.tup) > 0:
+                args.outfile.write(jdelim.join(self.tup) + jdelim)
+            res = map(str, args.dist.fit(r) + scipy.stats.kstest(r, args.dist.cdf))
+            args.outfile.write(str(c) + jdelim + jdelim.join(res) + '\n')
 
 if __name__ == "__main__":
     # set up command line args
@@ -39,24 +32,13 @@ if __name__ == "__main__":
                                      description='Compute the distribution fit to column in the input')
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--column', type=int, default=0)
-    parser.add_argument('-i', '--dist', default='norm')
+    parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
+    parser.add_argument('-i', '--dist', default='norm')    
+    parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
-    parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')
     args = parser.parse_args()
+    args.dist = getattr(scipy.stats, args.dist)
 
-    # set up logging
-    if args.quiet:
-        level = logging.WARNING
-    elif args.verbose:
-        level = logging.DEBUG
-    else:
-        level = logging.INFO
-    logging.basicConfig(
-        format = "%(levelname) -10s %(asctime)s %(module)s:%(lineno) -7s %(message)s",
-        level = level
-    )
-
-    fitFile(args.infile, args.outfile, args.column, args.dist, args.delimiter)
+    grouper = UnsortedInputGrouper(args.infile, FitGroup, args.group, args.delimiter)
+    grouper.group()
 
