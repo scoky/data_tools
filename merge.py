@@ -1,34 +1,34 @@
 #!/usr/bin/python
 
-import sys
 import os
+import sys
+import argparse
+import traceback
+from collections import defaultdict
 
-def test():
-	dict = {}
-	i = 1
-	first = True
-	while i+1 < len(sys.argv):
-	        f = open(sys.argv[i], "r")
-		index = int(sys.argv[i+1])
-		for line in f:
-			chunks = line.rstrip().split()
-			key = chunks[index]
-			del chunks[index]
-		
-			if first:			
-#				key = key+"."
-				dict[key] = [1] + chunks
-			elif key in dict:
-				dict[key] += chunks
-				dict[key][0] += 1
-		first = False
-		f.close()
-		i += 2
-	files = (i-1) / 2
+if __name__ == "__main__":
+    # set up command line args
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
+                                     description='Merge files on column(s)')
+    parser.add_argument('infiles', nargs='+', type=argparse.FileType('r'), default=[sys.stdin])
+    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
+    parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
+    parser.add_argument('-d', '--delimiter', default=None)
+    args = parser.parse_args()
+    if len(args.columns) == 1:
+        args.columns = args.columns*len(args.infiles)
+    if len(args.columns) != len(args.infiles):
+        sys.stderr.write('InputError: invalid columns argument\n')
+        exit()
+        
+    jdelim = args.delimiter if args.delimiter != None else ' '
+    merge = defaultdict(str)
+    for i,tup in enumerate(zip(args.infiles, args.columns)):
+        infile,col = tup
+        for line in infile:
+            line = line.rstrip()
+            chunk = line.split(args.delimiter, col+1)[col]
+            merge[chunk] += '#MERGE#'+str(i) + jdelim + line + jdelim
 
-	for key in dict.keys():
-		if dict[key][0] == files:
-			print key, " ".join(dict[key][1:len(dict[key])])
-
-test()
-
+    for val in merge.itervalues():
+        args.outfile.write(val + '\n')

@@ -1,22 +1,26 @@
 #!/usr/bin/python
 
-import sys
 import os
+import sys
+import argparse
+import traceback
 
-def test():
-	lines = []
-	for v in sys.argv[1:len(sys.argv)]:
-	        f = open(v, "r")
-		x = 0
-	        for line in f:
-			if len(lines) > x:
-				lines[x] += " " + line.rstrip()
-			else:
-				lines.append(line.rstrip())
-			x += 1
-		f.close()
-	for line in lines:
-		print line
+if __name__ == "__main__":
+    # set up command line args
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
+                                     description='Concatenate files')
+    parser.add_argument('infiles', nargs='+', type=argparse.FileType('r'), default=[sys.stdin])
+    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
+    parser.add_argument('-d', '--delimiter', default=None)
+    args = parser.parse_args()
 
-test()
-
+    jdelim = args.delimiter if args.delimiter != None else ' '
+    lines = []
+    for infile in args.infiles:
+        for i,line in enumerate(infile):
+            if len(lines) > i:
+                lines[i] += jdelim + line.rstrip()
+            else:
+                lines.append(line.rstrip())
+    for line in lines:
+        args.outfile.write(line + '\n')
