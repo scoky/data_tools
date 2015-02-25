@@ -77,7 +77,6 @@ class UnsortedInputGrouper(object):
             self.dict[key].done()
 
 commands = {
-'sum' : 	Command(0, lambda g,a,b: a+findNumber(b), lambda g,a: str(a)),
 'unique' : 	Command(set(), PerformReturn(lambda g,a,b: a.add(b)).perform, lambda g,a: str(len(a))),
 'aggregate' : 	Command([], PerformReturn(lambda g,a,b: a.append(b)).perform, lambda g,a: ' '.join(a))
 #,

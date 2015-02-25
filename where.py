@@ -11,15 +11,12 @@ from decimal import Decimal
 
 def compare(infile, outfile, statement, delimiter):
 	for line in infile:
-           try:
-		c = line.rstrip().split(delimiter)
-		if eval(statement):
-			outfile.write(line)
-	   except Exception as e:
-           	logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
-
-def main():
-    compare(args.infile, args.outfile, args.statement, args.delimiter)
+	    try:
+            c = line.rstrip().split(delimiter)
+            if eval(statement):
+                outfile.write(line)
+        except Exception as e:
+            logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
 
 if __name__ == "__main__":
     # set up command line args
@@ -34,8 +31,8 @@ if __name__ == "__main__":
     parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')
     args = parser.parse_args()
     if args.findNumber:
-	pattern = re.compile('(c\[\d+\])')
-	args.statement = pattern.sub(r'findNumber(\1)', args.statement)
+        pattern = re.compile('(c\[\d+\])')
+        args.statement = pattern.sub(r'findNumber(\1)', args.statement)
 
     # set up logging
     if args.quiet:
@@ -49,5 +46,5 @@ if __name__ == "__main__":
         level = level
     )
 
-    main()
+    compare(args.infile, args.outfile, args.statement, args.delimiter)
 
