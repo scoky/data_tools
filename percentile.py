@@ -25,7 +25,9 @@ class PercentileGroup(Group):
         for c,p in zip(args.columns, percentile(self.rows, args.percentiles, range(len(self.rows)))):
             if len(self.tup) > 0:
                 args.outfile.write(jdelim.join(self.tup) + jdelim)
-            args.outfile.write(str(c) + jdelim + jdelim.join(map(str, p)) + '\n')
+            if len(args.columns) > 1:
+                args.outfile.write(str(c) + jdelim)
+            args.outfile.write(jdelim.join(map(str, p)) + '\n')
 
 def percentile(rows, pts=DEFAULT_PCT, columns=[0]):
     for c in columns:

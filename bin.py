@@ -26,7 +26,9 @@ class BinGroup(Group):
             for k,v in b.iteritems():
                 if len(self.tup) > 0:
                     args.outfile.write(jdelim.join(self.tup) + jdelim)
-                args.outfile.write(jdelim.join(map(str, [c, k, v])) + '\n')
+                if len(args.columns) > 1:
+                    args.outfile.write(str(c) + jdelim)
+                args.outfile.write(jdelim.join(map(str, [k, v])) + '\n')
             
 # Default handling of input value    
 def nofuzz(v):

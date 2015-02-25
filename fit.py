@@ -23,8 +23,10 @@ class FitGroup(Group):
         for c,r in zip(args.columns, self.rows):
             if len(self.tup) > 0:
                 args.outfile.write(jdelim.join(self.tup) + jdelim)
+            if len(args.columns) > 1:
+                args.outfile.write(str(c) + jdelim)
             res = map(str, args.dist.fit(r) + scipy.stats.kstest(r, args.dist.cdf))
-            args.outfile.write(str(c) + jdelim + jdelim.join(res) + '\n')
+            args.outfile.write(jdelim.join(res) + '\n')
 
 if __name__ == "__main__":
     # set up command line args
