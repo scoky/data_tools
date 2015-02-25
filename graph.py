@@ -11,11 +11,11 @@ def bron_kerbosch(R, P, X, g):
     if not any((P, X)):
         if any(R):
             yield R
-    else:
+    elif any(P):
         # Select a random pivot
         u = random.sample(P, 1)[0]
         # Iterate over all vertices in P not a neighbor of u
-        for v in P - neigbors(u, g):
+        for v in P - neighbors(u, g):
             n = neighbors(v, g)
             R_v = R | set([v])
             P_v = P & n
