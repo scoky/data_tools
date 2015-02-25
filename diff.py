@@ -1,29 +1,39 @@
 #!/usr/bin/python
 
-import sys
 import os
-import re
-import dns_util
+import sys
+import argparse
+import traceback
 
-def test():
-	result = set()
-	first = 1
-	i = 1
-	while i+1 < len(sys.argv):
-		index = int(sys.argv[i])
-                f = open(sys.argv[i+1], "r")
-		temp = set()
-                for line in f:
-			temp.add(line.rstrip().split()[index])
-		i += 2
-		if first:
-			result = temp
-			first  = 0
-		else:
-			result = result.difference(temp)
-
-	for t in result:
-		print t
-
-test()
-
+if __name__ == "__main__":
+    # set up command line args
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
+                                     description='Compute difference of column(s)')
+    parser.add_argument('infiles', nargs='+', type=argparse.FileType('r'), default=[sys.stdin])
+    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
+    parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
+    parser.add_argument('-d', '--delimiter', default=None)
+    args = parser.parse_args()
+    if len(args.columns) == 1:
+        args.columns = args.columns*len(args.infiles)
+    if len(args.columns) != len(args.infiles):
+        sys.stderr.write('InputError: invalid columns argument\n')
+        exit()
+        
+    allitems = []
+    res = set()
+    first = True
+    for infile,col in zip(args.infiles, args.columns):
+        for line in infile:
+            chunk = line.rstrip().split(args.delimiter, col+1)[col]
+            allitems.append(chunk)
+            if first:
+                res.add(chunk)
+            else:
+                res.discard(chunk)
+        first = False
+    
+    for item in allitems:
+        if item in res:
+            args.outfile.write(item + '\n')
+            res.remove(item)

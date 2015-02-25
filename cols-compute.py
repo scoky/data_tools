@@ -24,9 +24,6 @@ def compute(infile, outfile, expression, append=False, delimiter=None):
     	except Exception as e:
             logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
 
-def main():
-    compute(args.infile, args.outfile, args.expression, args.append, args.delimiter)
-
 if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
@@ -52,5 +49,5 @@ if __name__ == "__main__":
         level = level
     )
 
-    main()
+    compute(args.infile, args.outfile, args.expression, args.append, args.delimiter)
 

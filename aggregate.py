@@ -10,21 +10,20 @@ def aggregate(infiles, outfile, column=0, delimiter=None):
     jdelim = delimiter if delimiter != None else ' '
     dict = {}
     for infile in infiles:
-      for line in infile:
-        try:
-	    chunks = line.rstrip().split(delimiter)
-            key = chunks[column]
-            if key not in dict:
-               dict[key] = chunks
-            else:
-               for chunk in chunks:
-                  if chunk not in dict[key]:
-                    dict[key].append(chunk)
-	except Exception as e:
-            logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
-
+        for line in infile:
+            try:
+                chunks = line.rstrip().split(delimiter)
+                key = chunks[column]
+                if key not in dict:
+                    dict[key] = chunks
+                else:
+                    for chunk in chunks:
+                        if chunk not in dict[key]:
+                            dict[key].append(chunk)
+            except Exception as e:
+                logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
     for key in dict:
-	outfile.write(jdelim.join(dict[key])+'\n')
+        outfile.write(jdelim.join(dict[key])+'\n')
 
 if __name__ == "__main__":
     # set up command line args
