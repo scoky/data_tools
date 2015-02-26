@@ -40,7 +40,7 @@ def findIPAddress(value):
     return socket.gethostbyname(value)
 
 def IPfromString(ip):
-    return struct.unpack("!I", socket.inet_aton(ip))[0]
+    return struct.unpack("!I", socket.inet_aton(int(ip)))[0]
 
 def IPtoString(ip):
     return socket.inet_ntoa(struct.pack("!I", ip))
@@ -48,7 +48,7 @@ def IPtoString(ip):
 def MACfromString(mac):
     return int(mac.replace(':', ''), 16)
 
-def MACtoString(cls, mac):
+def MACtoString(mac):
     raise Exception('Not Implemented')
 
 def ToUnixTime(dt):
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
-    parser.add_argument('-f', '--function', choices=['findNumber'], default='findNumber')
+    parser.add_argument('-f', '--function', choices=['IPtoString', 'findNumber'], default='findNumber')
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
     parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')
