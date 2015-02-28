@@ -67,18 +67,23 @@ def parseLines(infile, delimiter=None, columns=[0], function=findIdentity):
         except IndexError as e:
             logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
 
+def concatFiles(files, opts='r'):
+    for f in files:
+        for line in openFile(f, opts):
+            yield line
+
 def fileRange(startFile, endFile):
     startDir, startFile = os.path.split(startFile)
     _, endFile = os.path.split(endFile)
     if startDir == '':
-	    files = glob.iglob('*');
+        files = glob.iglob('*');
     else:
-	    files = glob.iglob(startDir + '/*');
+        files = glob.iglob(startDir + '/*');
     ret = []
     for fn in files:
         if os.path.basename(fn) >= startFile and os.path.basename(fn) <= endFile:
             ret.append(fn)
-        return sorted(ret)
+    return sorted(ret)
 
 def openFile(filename, opts):
     return gzip.open(filename, opts+'b') if filename.endswith('.gz') else open(filename, opts)
