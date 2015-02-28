@@ -5,13 +5,54 @@ import sys
 import argparse
 import traceback
 from input_handling import findNumber
-from collections import namedtuple
 
-def getStrKey(line, col):
-    return line.split(args.delimiter, col+1)[col]
+class CollaterFile(object):
+    def __init__(self, fstream, column, key, line, callback):
+        self.fstream = fstream
+        self.column = column
+        self.key = key
+        self.line = line
+        self.callback = callback
 
-def getNumKey(line, col):
-    return findNumber(line.split(args.delimiter, col+1)[col])
+class Collater(object):
+    def __init__(self, numerical=True, delimiter=None):
+        self.getKey = self.getNumKey if numerical else self.getStrKey
+        self.delimiter = delimiter
+        self.memory = []
+        
+    def addFile(self, fstream, callback, column=0):
+        line = fstream.readline()
+        # If there is nothing to read, drop the stream immediately
+        if line:
+            self.memory.append(CollaterFile(fstream, column, self.getKey(line, column), line, callback))
+            
+    def run(self):
+        self.run = True
+        while len(self.memory) > 0 and self.run:
+            # Find the file with the minimum key
+            i,f = min(enumerate(self.memory), key = lambda item: item[1].key)
+            # Send the minimum line to the callback
+            f.callback(f.line)
+            # Get a new line to replace what was the minimum
+            f.line = f.fstream.readline()
+            # If there is a new line, update the key
+            if f.line:
+                f.key = self.getKey(f.line, f.column)
+            # Else the file is done, remove it from memory
+            else:
+                del self.memory[i]
+                
+    def stop(self):
+        self.run = False
+
+    def getStrKey(self, line, col):
+        return line.split(self.delimiter, col+1)[col]
+
+    def getNumKey(self, line, col):
+        return findNumber(line.split(self.delimiter, col+1)[col])
+    
+def printLine(line):
+    args.outfile.write(line)
 
 if __name__ == "__main__":
     # set up command line args
@@ -28,24 +69,9 @@ if __name__ == "__main__":
     if len(args.columns) != len(args.infiles):
         sys.stderr.write('InputError: invalid columns argument\n')
         exit()
-    if args.numerical:
-        getKey = getNumKey
-    else:
-        getKey = getStrKey
-        
-    File = namedtuple('File', 'file col line key')
-    memory = []
+
+    collater = Collater(args.numerical)
     for col,infile in zip(args.columns, args.infiles):
-        line = infile.readline()
-        if line:
-            memory.append(File(infile, col, line, getKey(line, col)))
-        
-    while len(memory) > 0:
-        i,tup = min(enumerate(memory), key = lambda item: item[1].key)
-        args.outfile.write(tup.line)
-        line = tup.file.readline()
-        if line:
-            tup = File(tup.file, tup.col, line, getKey(line, tup.col))
-            memory[i] = tup
-        else:
-            del memory[i]
+        collater.addFile(infile, printLine, col)
+    collater.run()
+
