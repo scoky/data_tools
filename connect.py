@@ -61,6 +61,6 @@ if __name__ == "__main__":
     try:
 	time.sleep(86400)
     except KeyboardInterrupt:
-	sock.shutdown()
+	sock.shutdown(SHUT_RDWR)
 	sock.close()
         sys.exit()
