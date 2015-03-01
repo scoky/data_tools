@@ -10,8 +10,8 @@ from input_handling import findNumber
 from decimal import Decimal
 
 def compare(infile, outfile, statement, delimiter):
-	for line in infile:
-	    try:
+    for line in infile:
+        try:
             c = line.rstrip().split(delimiter)
             if eval(statement):
                 outfile.write(line)
