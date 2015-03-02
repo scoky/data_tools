@@ -11,12 +11,9 @@ from decimal import Decimal
 
 def compare(infile, outfile, statement, delimiter):
     for line in infile:
-        try:
-            c = line.rstrip().split(delimiter)
-            if eval(statement):
-                outfile.write(line)
-        except Exception as e:
-            logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
+        c = line.rstrip().split(delimiter)
+        if eval(statement):
+            outfile.write(line)
 
 if __name__ == "__main__":
     # set up command line args
