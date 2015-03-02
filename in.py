@@ -26,8 +26,7 @@ def main():
                 for line in f:
                     elements.add(line.rstrip())
 
-
-compareIn(args.infile, args.outfile, args.columns, elements, not args.notin, args.delimiter)
+    compareIn(args.infile, args.outfile, args.columns, elements, not args.notin, args.delimiter)
 
 if __name__ == "__main__":
     # set up command line args
