@@ -10,12 +10,12 @@ def formset(infile, outfile, index, delimiter):
     items = set()
     for line in infile:
         try:
-    	   chunk = line.split(delimiter)[index].rstrip()
-	   if chunk not in items:
-	      items.add(chunk)
-	      outfile.write(chunk+'\n')
-	except Exception as e:
-           logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
+            chunk = line.split(delimiter)[index].rstrip()
+            if chunk not in items:
+                items.add(chunk)
+                outfile.write(chunk+'\n')
+        except Exception as e:
+            logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
 
 def main():
     formset(args.infile, args.outfile, args.column, args.delimiter)
