@@ -43,7 +43,7 @@ def IPfromString(ip):
     return struct.unpack("!I", socket.inet_aton(int(ip)))[0]
 
 def IPtoString(ip):
-    return socket.inet_ntoa(struct.pack("!I", ip))
+    return socket.inet_ntoa(struct.pack("!I", int(ip)))
 
 def MACfromString(mac):
     return int(mac.replace(':', ''), 16)
