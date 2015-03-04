@@ -40,7 +40,7 @@ def findIPAddress(value):
     return socket.gethostbyname(value)
 
 def IPfromString(ip):
-    return struct.unpack("!I", socket.inet_aton(int(ip)))[0]
+    return struct.unpack("!I", socket.inet_aton(ip))[0]
 
 def IPtoString(ip):
     return socket.inet_ntoa(struct.pack("!I", int(ip)))
