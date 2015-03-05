@@ -49,7 +49,9 @@ def MACfromString(mac):
     return int(mac.replace(':', ''), 16)
 
 def MACtoString(mac):
-    raise Exception('Not Implemented')
+    mac = hex(int(mac)).lstrip('0x')
+    mac = '0'*(12-len(mac))+mac
+    return ':'.join([mac[i:i+2] for i in xrange(0, len(mac), 2)])
 
 def ToUnixTime(dt):
     epoch = datetime.datetime.utcfromtimestamp(0)
