@@ -23,21 +23,26 @@ def findIdentity(value):
 def findNumber(value):
     try:
         return Decimal(value)
-    except InvalidOperation as e:
+    except InvalidOperation:
         return Decimal(number_pattern.search(value).group())
 
 # Search an input value for a number
 def findSignificantNumber(value, digits):
     try:
         return Decimal(value)
-    except InvalidOperation as e:
+    except InvalidOperation:
         return Decimal(number_pattern.search(value).group())
 
 def findIPAddress(value):
-    m = ip_pattern.search(value)
-    if m:
-	    return m.group()
-    return socket.gethostbyname(value)
+    try:
+        # Might be a simple integer
+        return int(value)
+    except ValueError:
+        m = ip_pattern.search(value)
+        if m: # IP address in octet notation
+	        return IPfromString(m.group())
+        else: # Potentially a hostname
+            return socket.gethostbyname(value)
 
 def IPfromString(ip):
     return struct.unpack("!I", socket.inet_aton(ip))[0]
@@ -97,6 +102,7 @@ if __name__ == "__main__":
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
+    parser.add_argument('-a', '--append', action='store_true', default=False, help='append result to columns')
     parser.add_argument('-f', '--function', choices=['IPtoString', 'IPfromString', 'MACtoString', 'MACfromString', 'findNumber', 'findIPAddress'], default='findNumber')
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
@@ -117,6 +123,10 @@ if __name__ == "__main__":
     )
 
     jdelim = args.delimiter if args.delimiter != None else ' '
-    for vals in parseLines(args.infile, delimiter=args.delimiter, columns=args.columns, function=args.function):
-      args.outfile.write(jdelim.join(map(str,vals))+'\n')
+    for line in args.infile:
+        chunks = line.rstrip().split(args.delimiter)
+        vals = [args.function(chunks[i]) for i in args.columns]
+        if args.append:
+            args.outfile.write('%s%s' % (line.rstrip(), jdelim))
+        args.outfile.write(jdelim.join(map(str,vals))+'\n')
     
