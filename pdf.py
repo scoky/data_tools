@@ -16,6 +16,7 @@ def pdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=Non
 
     # Set precision
     if sigDigits:
+        prevSigDigits = getcontext().prec
         getcontext().prec = sigDigits
 
     # Quantize input
@@ -38,7 +39,7 @@ def pdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=Non
     for line in infile:
         chunks = line.rstrip().split(delimiter)
         value = getFunc(chunks, column, quant)
-        count = addFunc(chunks, column)
+        count = addFunc(chunks, binColumn)
         bins[value] += count
         total += count
 
@@ -49,6 +50,9 @@ def pdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=Non
         total += padding[i+1]
         i += 2
 
+    # Return to the default significant digits
+    if sigDigits:
+        getcontext().prec = prevSigDigits
     for key in bins:
         bins[key] = bins[key]/total
 

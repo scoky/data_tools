@@ -14,7 +14,7 @@ if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
                                      description='Generate random samples')
-    parser.add_argument('parameters', nargs='+', type=float)
+    parser.add_argument('parameters', nargs='*', type=float)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-s', '--samples', type=int, default=1)
     parser.add_argument('-d', '--dist', default='gauss', choices=DISTS)
