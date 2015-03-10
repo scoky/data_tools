@@ -25,8 +25,9 @@ class FitGroup(Group):
                 args.outfile.write(jdelim.join(self.tup) + jdelim)
             if len(args.columns) > 1:
                 args.outfile.write(str(c) + jdelim)
-            res = map(str, args.dist.fit(r) + scipy.stats.kstest(r, args.dist.cdf))
-            args.outfile.write(jdelim.join(res) + '\n')
+            shape_params = args.distf.fit(r)
+            ks_res = scipy.stats.kstest(r, args.dist, shape_params)
+            args.outfile.write(jdelim.join(map(str, shape_params + ks_res)) + '\n')
 
 if __name__ == "__main__":
     # set up command line args
@@ -39,7 +40,7 @@ if __name__ == "__main__":
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
     args = parser.parse_args()
-    args.dist = getattr(scipy.stats, args.dist)
+    args.distf = getattr(scipy.stats, args.dist)
 
     grouper = UnsortedInputGrouper(args.infile, FitGroup, args.group, args.delimiter)
     grouper.group()
