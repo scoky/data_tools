@@ -10,7 +10,7 @@ from numpy import linspace
 if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Generate random samples')
+                                     description='Generate CDF of given distribution')
     parser.add_argument('parameters', nargs='?', default="{}", help='dictionary of distribution parameters')
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-s', '--start', type=float, default=0)

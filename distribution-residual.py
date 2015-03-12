@@ -5,19 +5,21 @@ import sys
 import argparse
 import traceback
 import scipy.stats as ss
+from numpy import linspace
 
 if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Generate samples from a given distribution')
+                                     description='Compute the residual of input samples with a fitted distribution')
     parser.add_argument('parameters', nargs='?', default="{}", help='dictionary of distribution parameters')
+    parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-s', '--samples', type=int, default=1)
     parser.add_argument('-d', '--dist', default='norm')
     args = parser.parse_args()
     args.distf = getattr(ss, args.dist)
     args.parameters = eval(args.parameters)
-    args.parameters["size"] = args.samples
-    
-    v = args.distf.rvs(**args.parameters)
-    args.outfile.write('\n'.join(map(str, v)) + '\n')
+
+    for line in args.infile:
+        x,y = line.rstrip().split()
+        delta = float(y) - args.distf.cdf(float(x), **args.parameters)
+        args.outfile.write(str(delta) + '\n')
