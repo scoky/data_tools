@@ -34,7 +34,7 @@ def pdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=Non
     jdelim = delimiter if delimiter != None else ' '
 
     bins = defaultdict(Decimal)
-    total = zero
+    total = 0
 
     for line in infile:
         chunks = line.rstrip().split(delimiter)
@@ -43,6 +43,10 @@ def pdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=Non
         bins[value] += count
         total += count
 
+    # Return to the default significant digits
+    if sigDigits:
+        getcontext().prec = prevSigDigits
+
     # Insert padding
     i = 0
     while i+1 < len(padding):
@@ -50,9 +54,6 @@ def pdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=Non
         total += padding[i+1]
         i += 2
 
-    # Return to the default significant digits
-    if sigDigits:
-        getcontext().prec = prevSigDigits
     for key in bins:
         bins[key] = bins[key]/total
 
@@ -66,11 +67,10 @@ def getQuantNumber(vals, col, quant):
 def getNumber(vals, col, quant):
     return findNumber(vals[col]) + zero
 
-one = Decimal(1)
 def getBinNumber(vals, col):
-    return findNumber(vals[col])
+    return int(vals[col])
 def getOneNumber(vals, col):
-    return one
+    return 1
 
 if __name__ == "__main__":
     # set up command line args

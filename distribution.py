@@ -5,6 +5,7 @@ import sys
 import argparse
 import traceback
 import random
+import scipy.stats as ss
 
 DISTS = ['random', 'uniform', 'triangular', 'betavariate', 'expovariate', 'gammavariate',\
          'gauss', 'lognormvariate', 'normalvariate', 'vonmisesvariate', 'paretovariate',\

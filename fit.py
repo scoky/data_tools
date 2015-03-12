@@ -25,14 +25,15 @@ class FitGroup(Group):
                 args.outfile.write(jdelim.join(self.tup) + jdelim)
             if len(args.columns) > 1:
                 args.outfile.write(str(c) + jdelim)
-            shape_params = args.distf.fit(r)
+            shape_params = args.distf.fit(r, **eval(args.parameters))
             ks_res = scipy.stats.kstest(r, args.dist, shape_params)
-            args.outfile.write(jdelim.join(map(str, shape_params + ks_res)) + '\n')
+            args.outfile.write(jdelim.join(map(str, shape_params)) + jdelim + jdelim.join(map(str, ks_res)) + '\n')
 
 if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
                                      description='Compute the distribution fit to column in the input')
+    parser.add_argument('parameters', nargs='*', type=float, help='dictionary of fit parameters')
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
