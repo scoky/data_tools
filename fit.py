@@ -33,7 +33,7 @@ if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
                                      description='Compute the distribution fit to column in the input')
-    parser.add_argument('parameters', nargs='?', help='dictionary of fit parameters')
+    parser.add_argument('parameters', nargs='?', default="{}", help='dictionary of fit parameters')
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
