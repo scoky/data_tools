@@ -20,14 +20,15 @@ class FitGroup(Group):
 
     def done(self):
         jdelim = args.delimiter if args.delimiter != None else ' '
-        for c,r in zip(args.columns, self.rows):
-            if len(self.tup) > 0:
-                args.outfile.write(jdelim.join(self.tup) + jdelim)
-            if len(args.columns) > 1:
-                args.outfile.write(str(c) + jdelim)
-            shape_params = args.distf.fit(r, **eval(args.parameters))
-            ks_res = scipy.stats.kstest(r, args.dist, shape_params)
-            args.outfile.write(jdelim.join(map(str, shape_params)) + jdelim + jdelim.join(map(str, ks_res)) + '\n')
+        for dist,i in zip(args.dist, args.distf):
+            for c,r in zip(args.columns, self.rows):
+                if len(self.tup) > 0:
+                    args.outfile.write(jdelim.join(self.tup) + jdelim)
+                if len(args.columns) > 1:
+                    args.outfile.write(str(c) + jdelim)
+                shape_params = i.fit(r, **eval(args.parameters))
+                ks_res = scipy.stats.kstest(r, args.dist, shape_params)
+                args.outfile.write(dist + jdelim + jdelim.join(map(str, shape_params)) + jdelim + jdelim.join(map(str, ks_res)) + '\n')
 
 if __name__ == "__main__":
     # set up command line args
@@ -37,11 +38,13 @@ if __name__ == "__main__":
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
-    parser.add_argument('-i', '--dist', default='norm')    
+    parser.add_argument('-i', '--dist', nargs='+', default='[norm]')
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
     args = parser.parse_args()
-    args.distf = getattr(scipy.stats, args.dist)
+    args.distf = []
+    for i in args.dist:
+        args.distf.append(getattr(scipy.stats, i))
 
     grouper = UnsortedInputGrouper(args.infile, FitGroup, args.group, args.delimiter)
     grouper.group()
