@@ -33,7 +33,7 @@ def pdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=Non
 
     jdelim = delimiter if delimiter != None else ' '
 
-    bins = defaultdict(Decimal)
+    bins = defaultdict(int)
     total = 0
 
     for line in infile:
@@ -55,7 +55,7 @@ def pdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=Non
         i += 2
 
     for key in bins:
-        bins[key] = bins[key]/total
+        bins[key] = Decimal(bins[key])/total
 
     sort_bins = sorted(bins.items(), key=operator.itemgetter(0 if order=='key' else 1))
     for pair in sort_bins:
