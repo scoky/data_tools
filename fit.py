@@ -27,7 +27,7 @@ class FitGroup(Group):
                 if len(args.columns) > 1:
                     args.outfile.write(str(c) + jdelim)
                 shape_params = i.fit(r, **eval(args.parameters))
-                ks_res = scipy.stats.kstest(r, args.dist, shape_params)
+                ks_res = scipy.stats.kstest(r, dist, shape_params)
                 args.outfile.write(dist + jdelim + jdelim.join(map(str, shape_params)) + jdelim + jdelim.join(map(str, ks_res)) + '\n')
 
 if __name__ == "__main__":
