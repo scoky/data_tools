@@ -35,6 +35,9 @@ def paretoLomaxCDF(xdata, l, a):
     
 def pareto(xdata, shape, location, scale):
     return np.power(1 + shape * (xdata - location) / scale, -1 / (shape+1)) / scale
+    
+def paretoCDF(xdata, shape, location, scale):
+    return 1 - np.power(1 + shape * (xdata - location) / scale, -1 / shape)
 
 class FitGroup(Group):
     def __init__(self, tup):
