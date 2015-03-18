@@ -31,7 +31,7 @@ def paretoLomax(xdata, l, a):
     return a * np.power(l, a) / np.power(xdata+l, a+1)
     
 def paretoLomaxCDF(xdata, l, a):
-    return 1 - np.power(1 + x/l, -a)
+    return 1 - np.power(1 + xdata/l, -a)
     
 def pareto(xdata, shape, location, scale):
     return np.power(1 + shape * (xdata - location) / scale, -1 / (shape+1)) / scale
