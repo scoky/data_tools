@@ -8,6 +8,7 @@ import numpy as np
 from math import factorial
 from group import Group,UnsortedInputGrouper
 from scipy.optimize import curve_fit as cfit
+import scipy.stats as ss
 
 def first_degree(xdata, a, b):
     return a * xdata + b
@@ -64,16 +65,30 @@ if __name__ == "__main__":
                                      description='Compute the curve fit to column in the input')
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--curve', nargs='+', default=['paretoLomax'], help='one of the built in curves or a lambda expression')
+    parser.add_argument('-s', '--source', default='scipy.stats', choices=['scipy.stats', 'builtin', 'lambda'], help='source of the curve to fit')
+    parser.add_argument('-c', '--curve', nargs='+', default=['pareto'], help='one of the built in curves or a lambda expression')
     parser.add_argument('-p', '--params', nargs='+', type=float, default=None, help='initial parameters')
     parser.add_argument('-x', '--xdata', type=int, default=0)
     parser.add_argument('-y', '--ydata', type=int, default=1)
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
     args = parser.parse_args()
+    if args.source == 'scipy.stats':
+        args.source = ss
+    elif args.source == 'builtin':
+        args.source = sys.modules[__name__]
+    else:
+        args.source = None
+        
     args.curvef = []
     for i in args.curve:
-        args.curvef.append(getattr(sys.modules[__name__], i))
+        if args.source:
+            mod = args.source
+            for c in i.split('.'):
+                mod = getattr(mod, c)
+            args.curvef.append(mod)
+        else:
+            args.curvf.append(eval(i))
 
     grouper = UnsortedInputGrouper(args.infile, FitGroup, args.group, args.delimiter)
     grouper.group()
