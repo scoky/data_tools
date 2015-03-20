@@ -88,7 +88,7 @@ if __name__ == "__main__":
                 mod = getattr(mod, c)
             args.curvef.append(mod)
         else:
-            args.curvf.append(eval(i))
+            args.curvef.append(eval(i))
 
     grouper = UnsortedInputGrouper(args.infile, FitGroup, args.group, args.delimiter)
     grouper.group()
