@@ -43,7 +43,7 @@ if __name__ == "__main__":
         mod = args.source
         for c in args.dist.split('.'):
             mod = getattr(mod, c)
-        args.distf = mod.cdf
+        args.distf = mod
     else:
         args.distf = eval(args.dist)
 
