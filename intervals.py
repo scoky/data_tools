@@ -16,7 +16,7 @@ class IntervalGroup(Group):
 
     def add(self, chunks):
         vals = [findNumber(chunks[i]) for i in args.columns]
-        ints = [v-l if l else None for v,l in zip(vals,self.last)]
+        ints = [v-l if l != None else None for v,l in zip(vals,self.last)]
         args.outfile.write(self.jdelim.join(chunks+map(str, ints)) + '\n')
         self.last = vals
 
