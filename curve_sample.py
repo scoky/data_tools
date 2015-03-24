@@ -16,8 +16,11 @@ if __name__ == "__main__":
     parser.add_argument('-n', '--number', type=int, default=100)
     parser.add_argument('-s', '--source', default='scipy.stats', choices=['scipy.stats', 'builtin', 'lambda'], help='source of the curve to fit')
     parser.add_argument('-c', '--curve', default='paretoLomax')
-    parser.add_argument('-p', '--params', nargs='+', type=float, default=[], help='initial parameters')
+    parser.add_argument('-p', '--params', default='', help='initial parameters')
     args = parser.parse_args()
+    
+    args.params = map(float, args.params.split())
+    
     if args.source == 'scipy.stats':
         import scipy.stats as ss
         args.source = ss

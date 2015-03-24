@@ -67,7 +67,7 @@ if __name__ == "__main__":
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-s', '--source', default='scipy.stats', choices=['scipy.stats', 'builtin', 'lambda'], help='source of the curve to fit')
     parser.add_argument('-c', '--curve', nargs='+', default=['pareto'], help='one of the built in curves or a lambda expression')
-    parser.add_argument('-p', '--params', nargs='+', type=float, default=None, help='initial parameters')
+    parser.add_argument('-p', '--params', default='', help='initial parameters')
     parser.add_argument('-x', '--xdata', type=int, default=0)
     parser.add_argument('-y', '--ydata', type=int, default=1)
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
@@ -79,6 +79,8 @@ if __name__ == "__main__":
         args.source = sys.modules[__name__]
     else:
         args.source = None
+        
+    args.params = map(float, args.params.split(args.delimiter))
         
     args.curvef = []
     for i in args.curve:
