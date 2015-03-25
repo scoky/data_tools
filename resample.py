@@ -15,22 +15,43 @@ class ResampleGroup(Group):
 
     def add(self, chunks):
         npoint = (Decimal(chunks[args.xdata]), Decimal(chunks[args.ydata]))
-        if self.point:
-            if npoint[0] >= self.x:
-                # Unwind to compute first two points, so future points can be computed via deltas
-                y = args.interpolatef(self.point, npoint, self.x)
-                yd = args.interpolatef(self.point, npoint, self.x + args.frequency) - y
-                while npoint[0] >= self.x:
-                    #if len(self.tup) > 0:
-                    #    args.outfile.write(jdelim.join(self.tup) + jdelim)
-                    args.outfile.write(str(self.x) + self.jdelim + str(y) + '\n')
-                    self.x += args.frequency
-                    y += yd
+        if args.sync or (npoint[0] % args.frequency) == 0:
+            self.x = npoint[0]
         else:
-            if args.sync or (npoint[0] % args.frequency) == 0:
+            self.x = npoint[0] - (npoint[0] % args.frequency) + args.frequency
+        self.point = npoint
+        if args.expand:
+            self.add = self.addAfterExpand
+        else:
+            self.add = self.addAfter
+
+    def addAfter(self, chunks);
+        npoint = (Decimal(chunks[args.xdata]), Decimal(chunks[args.ydata]))
+        if npoint[0] >= self.x:
+            y = args.interpolatef(self.point, npoint, self.x)
+
+            if len(self.tup) > 0:
+                args.outfile.write(jdelim.join(self.tup) + jdelim)
+            args.outfile.write(str(self.x) + self.jdelim + str(y) + '\n')
+
+            if self.x != npoint[0] and (npoint[0] % args.frequency) == 0:
                 self.x = npoint[0]
             else:
                 self.x = npoint[0] - (npoint[0] % args.frequency) + args.frequency
+        self.point = npoint
+
+    def addAfterExpand(self, chunks);
+        npoint = (Decimal(chunks[args.xdata]), Decimal(chunks[args.ydata]))
+        if npoint[0] >= self.x:
+            # Unwind to compute first two points, so future points can be computed via deltas
+            y = args.interpolatef(self.point, npoint, self.x)
+            yd = args.interpolatef(self.point, npoint, self.x + args.frequency) - y
+            while npoint[0] >= self.x:
+                if len(self.tup) > 0:
+                    args.outfile.write(jdelim.join(self.tup) + jdelim)
+                args.outfile.write(str(self.x) + self.jdelim + str(y) + '\n')
+                self.x += args.frequency
+                y += yd
         self.point = npoint
 
     def done(self):
@@ -48,6 +69,7 @@ if __name__ == "__main__":
     parser.add_argument('-f', '--frequency', type=Decimal, default=Decimal('1'))
     parser.add_argument('-i', '--interpolate', choices=['linear'], default='linear')
     parser.add_argument('-s', '--sync', action='store_true', default=False)
+    parser.add_argument('-e', '--expand', action='store_true', default=False)
     parser.add_argument('-x', '--xdata', type=int, default=0)
     parser.add_argument('-y', '--ydata', type=int, default=1)
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
