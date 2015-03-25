@@ -16,12 +16,16 @@ class ResampleGroup(Group):
     def add(self, chunks):
         npoint = (Decimal(chunks[args.xdata]), Decimal(chunks[args.ydata]))
         if self.point:
-            while npoint[0] > self.x:
+            if npoint[0] >= self.x:
+                # Unwind to compute first two points, so future points can be computed via deltas
                 y = args.interpolatef(self.point, npoint, self.x)
-                if len(self.tup) > 0:
-                    args.outfile.write(jdelim.join(self.tup) + jdelim)
-                args.outfile.write(str(self.x) + self.jdelim + str(y) + '\n')
-                self.x += args.frequency
+                yd = args.interpolatef(self.point, npoint, self.x + args.frequency) - y
+                while npoint[0] >= self.x:
+                    #if len(self.tup) > 0:
+                    #    args.outfile.write(jdelim.join(self.tup) + jdelim)
+                    args.outfile.write(str(self.x) + self.jdelim + str(y) + '\n')
+                    self.x += args.frequency
+                    y += yd
         else:
             if args.sync or (npoint[0] % args.frequency) == 0:
                 self.x = npoint[0]
