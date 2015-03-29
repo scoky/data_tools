@@ -5,6 +5,7 @@ import re
 import sys
 import argparse
 import traceback
+from decimal import Decimal
 from input_handling import findNumber
 from group import Group,UnsortedInputGrouper
 
