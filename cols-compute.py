@@ -100,6 +100,7 @@ if __name__ == "__main__":
     args.jdelim = args.delimiter if args.delimiter != None else ' '
     # Pattern to pull out integers which represent columns
     pattern = re.compile("([pcn]\[\d+\])")
+
     # Replace integers with indices into an array and convert to a lambda expression
     if 'n[' in args.expression and 'p[' in args.expression:
         args.expression = eval('lambda p,c,n: '+ pattern.sub(r'findNumber(\1)', args.expression))
