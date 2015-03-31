@@ -25,11 +25,22 @@ if __name__ == "__main__":
                                      description='Select columns from a table file.')
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--columns', nargs='+', type=int, default='0')
+    parser.add_argument('-c', '--columns', nargs='+', default='0', help='can specify column indices, or ranges (e.g., 0:4)')
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
     parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')
     args = parser.parse_args()
+
+    cols = args.columns
+    args.columns = []
+    for c in cols:
+        vals = c.split(':', 1)
+        if len(vals) == 1:
+            args.columns.append(int(vals[0]))
+        elif len(vals) == 2:
+            args.columns += range(int(vals[0]), int(vals[1])+1)
+        else:
+            raise Exception('invalid column parameter')
 
     # set up logging
     if args.quiet:
