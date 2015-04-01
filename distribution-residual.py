@@ -5,7 +5,6 @@ import sys
 import argparse
 import traceback
 import scipy.stats as ss
-from numpy import linspace
 
 if __name__ == "__main__":
     # set up command line args
