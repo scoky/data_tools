@@ -56,8 +56,8 @@ class FitGroup(Group):
             if len(self.tup) > 0:
                 args.outfile.write(jdelim.join(self.tup) + jdelim)
             popt, pcov = cfit(i, self.xdata, self.ydata, p0=args.params)
-            perr = np.sqrt(np.diag(pcov))
-            args.outfile.write(jdelim.join(map(str, popt)) + jdelim + curve + jdelim + jdelim.join(map(str, perr)) + '\n')
+            pvar = np.diag(pcov)
+            args.outfile.write(jdelim.join(map(str, popt)) + jdelim + curve + jdelim + jdelim.join(map(str, pvar)) + '\n')
 
 if __name__ == "__main__":
     # set up command line args
