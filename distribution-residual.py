@@ -21,4 +21,4 @@ if __name__ == "__main__":
     for line in args.infile:
         x,y = line.rstrip().split()
         delta = float(y) - args.distf.cdf(float(x), *args.params)
-        args.outfile.write(str(delta) + '\n')
+        args.outfile.write(x + ' ' + str(delta) + '\n')
