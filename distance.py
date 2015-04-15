@@ -73,10 +73,10 @@ if __name__ == "__main__":
     val1 = []
     for line in args.infile1:
         chunks = line.rstrip().split(args.delimiter)
-        val1.append( (float(chunks[args.key]), float(chunks[args.value])) )
+        val1.append( (chunks[args.key], float(chunks[args.value])) )
     val2 = []
     for line in args.infile2:
         chunks = line.rstrip().split(args.delimiter)
-        val2.append( (float(chunks[args.key]), float(chunks[args.value])) )
+        val2.append( (chunks[args.key], float(chunks[args.value])) )
     args.outfile.write(str(args.metricf(val1, val2)) + '\n')
 
