@@ -11,7 +11,7 @@ from log_parsing.file_handle_dictionary import FileHandleDict
 class SplitGroup(Group):
     def __init__(self, tup):
         super(SplitGroup, self).__init__(tup)
-        self.filename = args.file_prefix+'-'.join(tup)
+        self.filename = args.prefix+'-'.join(tup)
         self.jdelim = args.delimiter if args.delimiter != None else ' '
         args.file_dict[self.filename] = open(self.filename, 'w')
 
@@ -29,13 +29,10 @@ if __name__ == "__main__":
                                      description='Split a file on column(s).')
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('-d', '--delimiter', default=None)
+    parser.add_argument('-p', '--prefix', default='split-')
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     args = parser.parse_args()
     args.file_dict = FileHandleDict()
-    if args.infile == sys.stdin:
-        args.file_prefix = 'split-'
-    else:
-        args.file_prefix = args.infile.name+'.split-'
 
     grouper = UnsortedInputGrouper(args.infile, SplitGroup, args.group, args.delimiter)
     grouper.group()
