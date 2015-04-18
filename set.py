@@ -16,6 +16,7 @@ class SetGroup(Group):
     def add(self, chunks):
         val = chunks[args.column]
         if val not in self.uniques:
+            self.uniques.add(val)
             if args.append:
                 args.outfile.write(self.jdelim.join(chunks) + '\n')
             else:
