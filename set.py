@@ -1,24 +1,30 @@
 #!/usr/bin/python
 
+import os
+import sys
 import logging
 import argparse
-import sys
 import traceback
-import os
+from group import Group,UnsortedInputGrouper
 
-def formset(infile, outfile, index, delimiter):
-    items = set()
-    for line in infile:
-        try:
-            chunk = line.split(delimiter)[index].rstrip()
-            if chunk not in items:
-                items.add(chunk)
-                outfile.write(chunk+'\n')
-        except Exception as e:
-            logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
+class SetGroup(Group):
+    def __init__(self, tup):
+        super(SetGroup, self).__init__(tup)
+        self.uniques = set()
+        self.jdelim = args.delimiter if args.delimiter != None else ' '
 
-def main():
-    formset(args.infile, args.outfile, args.column, args.delimiter)
+    def add(self, chunks):
+        val = chunks[args.column]
+        if val not in self.uniques:
+            if args.append:
+                args.outfile.write(self.jdelim.join(chunks) + '\n')
+            else:
+                if len(self.tup) > 0:
+                    args.outfile.write(self.jdelim.join(self.tup) + self.jdelim)
+                args.outfile.write(val + '\n')
+
+    def done(self):
+        pass
 
 if __name__ == "__main__":
     # set up command line args
@@ -28,21 +34,9 @@ if __name__ == "__main__":
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-c', '--column', type=int, default=0)
     parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
-    parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')
+    parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
+    parser.add_argument('-a', '--append', action='store_true', default=False)
     args = parser.parse_args()
 
-    # set up logging
-    if args.quiet:
-        level = logging.WARNING
-    elif args.verbose:
-        level = logging.DEBUG
-    else:
-        level = logging.INFO
-    logging.basicConfig(
-        format = "%(levelname) -10s %(asctime)s %(module)s:%(lineno) -7s %(message)s",
-        level = level
-    )
-
-    main()
-
+    grouper = UnsortedInputGrouper(args.infile, SetGroup, args.group, args.delimiter)
+    grouper.group()
