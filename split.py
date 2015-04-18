@@ -39,4 +39,5 @@ if __name__ == "__main__":
 
     grouper = UnsortedInputGrouper(args.infile, SplitGroup, args.group, args.delimiter)
     grouper.group()
+    args.file_dict.close_all()
 
