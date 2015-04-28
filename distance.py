@@ -6,6 +6,8 @@ import math
 import argparse
 import traceback
 from collections import defaultdict
+from input_handling import findNumber
+from group import Group,UnsortedInputGrouper
 
 def hamming(s1, s2):
     #Return the Hamming distance between equal-length sequences
@@ -55,28 +57,45 @@ def jaccard(vec1, vec2):
      s1 = set([vec1[x][0] for x in range(len(vec1))])
      s2 = set([vec2[x][0] for x in range(len(vec2))])
      return float(len(s1 & s2)) / float(len(s1 | s2))
+     
+class DistanceGroup(Group):
+    def __init__(self, tup):
+        super(DistanceGroup, self).__init__(tup)
+        self.values = []
+        args.groups.append(self)
+
+    def add(self, chunks):
+        self.values.append( (chunks[args.key], float(chunks[args.value])) )
+
+    def done(self):
+        pass
 
 if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
                                      description='Compute distance between list')
-    parser.add_argument('infile1', type=argparse.FileType('r'))
-    parser.add_argument('infile2', type=argparse.FileType('r'))
+    parser.add_argument('infiles', nargs='*', type=argparse.FileType('r'), default=[sys.stdin])
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-m', '--metric', default='cosine', choices=['cosine', 'jaccard', 'hamming', 'levenshtein'])
     parser.add_argument('-k', '--key', type=int, default=0)
     parser.add_argument('-v', '--value', type=int, default=1)
+    parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
     args = parser.parse_args()
-    args.metricf = getattr(sys.modules[__name__], args.metric)
 
-    val1 = []
-    for line in args.infile1:
-        chunks = line.rstrip().split(args.delimiter)
-        val1.append( (chunks[args.key], float(chunks[args.value])) )
-    val2 = []
-    for line in args.infile2:
-        chunks = line.rstrip().split(args.delimiter)
-        val2.append( (chunks[args.key], float(chunks[args.value])) )
-    args.outfile.write(str(args.metricf(val1, val2)) + '\n')
+    args.metricf = getattr(sys.modules[__name__], args.metric)
+    args.groups = []
+
+    for infile in args.infiles:
+        grouper = UnsortedInputGrouper(infile, DistanceGroup, args.group, args.delimiter)
+        grouper.group()
+
+    jdelim = args.delimiter if args.delimiter != None else ' '
+    for g1 in args.groups:
+        for g2 in args.groups:
+            if g1 == g2:
+                break
+            if len(args.group) > 0:
+                args.outfile.write(jdelim.join(g1.tup+g2.tup) + jdelim)
+            args.outfile.write(str(args.metricf(g1.values, g2.values)) + '\n')
 
