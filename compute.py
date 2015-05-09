@@ -18,10 +18,11 @@ class Compute3Group(Group):
         self.rows = (self.rows[1], self.rows[2], chunks)
         if not self.rows[1]:
             return
-        if len(self.tup) > 0:
-            args.outfile.write(args.jdelim.join(self.tup) + args.jdelim)
         if args.append:
             args.outfile.write(args.jdelim.join(self.rows[1]) + args.jdelim)
+        elif len(self.tup) > 0:
+            args.outfile.write(args.jdelim.join(self.tup) + args.jdelim)
+
         if all(self.rows):
             args.outfile.write(str(args.expression(self.rows[0], self.rows[1], self.rows[2])) + '\n')
         else:
@@ -37,10 +38,12 @@ class ComputePrevGroup(Group):
 
     def add(self, chunks):
         self.rows = (self.rows[1], chunks)
-        if len(self.tup) > 0:
-            args.outfile.write(args.jdelim.join(self.tup) + args.jdelim)
+
         if args.append:
             args.outfile.write(args.jdelim.join(self.rows[1]) + args.jdelim)
+        elif len(self.tup) > 0:
+            args.outfile.write(args.jdelim.join(self.tup) + args.jdelim)
+
         if all(self.rows):
             args.outfile.write(str(args.expression(self.rows[0], self.rows[1])) + '\n')
         else:
@@ -59,10 +62,11 @@ class ComputeNextGroup(Group):
         if not self.rows[0]:
             return
 
-        if len(self.tup) > 0:
-            args.outfile.write(args.jdelim.join(self.tup) + args.jdelim)
         if args.append:
             args.outfile.write(args.jdelim.join(self.rows[0]) + args.jdelim)
+        elif len(self.tup) > 0:
+            args.outfile.write(args.jdelim.join(self.tup) + args.jdelim)
+
         if all(self.rows):
             args.outfile.write(str(args.expression(self.rows[0], self.rows[1])) + '\n')
         else:
@@ -76,10 +80,10 @@ class Compute1Group(Group):
         super(Compute1Group, self).__init__(tup)
 
     def add(self, chunks):
-        if len(self.tup) > 0:
-            args.outfile.write(args.jdelim.join(self.tup) + args.jdelim)
         if args.append:
             args.outfile.write(args.jdelim.join(chunks) + args.jdelim)
+        elif len(self.tup) > 0:
+            args.outfile.write(args.jdelim.join(self.tup) + args.jdelim)
         args.outfile.write(str(args.expression(chunks)) + '\n')
 
     def done(self):
