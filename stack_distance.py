@@ -12,13 +12,17 @@ class StackGroup(Group):
     def __init__(self, tup):
         super(StackGroup, self).__init__(tup)
         self.items = defaultdict(int)
+        self.count = 0
 
     def add(self, chunks):
+        self.count += 1
         val = chunks[args.column]
-        distance = self.items[val]
-        self.items[val] = 0
-        for key in self.items:
-            self.items[key] += 1
+        if val in self.items:
+            distance = self.count - self.items[val]
+        else:
+            distance = 0
+        self.items[val] = self.count
+
         if args.append:
             args.outfile.write(args.jdelim.join(chunks) + args.jdelim)
         elif len(self.tup) > 0:
