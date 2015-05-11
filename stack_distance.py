@@ -22,7 +22,9 @@ class StackGroup(Group):
         if args.append:
             args.outfile.write(args.jdelim.join(chunks) + args.jdelim)
         elif len(self.tup) > 0:
-            args.outfile.write(args.jdelim.join(self.tup) + args.jdelim)
+            args.outfile.write(args.jdelim.join(self.tup) + args.jdelim + val + args.jdelim)
+        else:
+            args.outfile.write(val + args.jdelim)
         args.outfile.write(str(distance) + '\n')
 
     def done(self):
