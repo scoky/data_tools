@@ -18,9 +18,10 @@ class StackGroup(Group):
         self.count += 1
         val = chunks[args.column]
         if val in self.items:
-            distance = self.count - self.items[val]
+            val_item = self.items[val]
+            distance = sum( (1 for item in self.items.itervalues() if item > val_item) ) # Find all items with indices larger than the last occurance of this item
         else:
-            distance = 0
+            distance = -1
         self.items[val] = self.count
 
         if args.append:
