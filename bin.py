@@ -5,7 +5,7 @@ import sys
 import argparse
 import traceback
 from input_handling import findNumber
-from group import Group,UnsortedInputGrouper
+from group import Group,run_grouping
 from collections import defaultdict
 
 class BinGroup(Group):
@@ -44,11 +44,11 @@ if __name__ == "__main__":
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-f', '--fuzzy', default=None, help='lambda specifying how to fuzz bins')
     parser.add_argument('-d', '--delimiter', default=None)
+    parser.add_argument('-o', '--ordered', action='store_true', default=False, help='input is sorted by group')
     args = parser.parse_args()
     if not args.fuzzy:
         args.fuzzy = nofuzz
     else:
         args.fuzzy = eval(args.fuzzy)
 
-    grouper = UnsortedInputGrouper(args.infile, BinGroup, args.group, args.delimiter)
-    grouper.group()
+    run_grouping(args.infile, BinGroup, args.group, args.delimiter, args.ordered)

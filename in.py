@@ -15,17 +15,21 @@ def compareIn(infile, outfile, columns, elements, testIn=True, delimiter=None):
             c = jdelim.join([chunks[i] for i in columns])
             if (testIn and c in elements) or (not testIn and c not in elements):
                 outfile.write(line)
+        except IOError:
+            break
         except Exception as e:
             logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
 
 def main():
-    elements = set(args.list)
+    elements = {}
+    for item in args.list:
+        elements[item] = True
     if args.listfiles:
         for listfile in args.listfiles:
             with open(listfile, 'r') as f:
                 for line in f:
-                    elements.add(line.rstrip())
-
+                    elements[line.rstrip()] = True
+    
     compareIn(args.infile, args.outfile, args.columns, elements, not args.notin, args.delimiter)
 
 if __name__ == "__main__":

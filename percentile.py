@@ -7,7 +7,7 @@ import traceback
 from collections import defaultdict
 from decimal import Decimal
 from input_handling import findNumber
-from group import Group,UnsortedInputGrouper
+from group import Group,run_grouping
 
 DEFAULT_PCT = map(Decimal, ['0', '0.01', '0.25', '0.5', '0.75', '0.99', '1'])
 
@@ -59,8 +59,8 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--percentiles', nargs='+', type=Decimal, default=DEFAULT_PCT)
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
+    parser.add_argument('-o', '--ordered', action='store_true', default=False, help='input is sorted by group')
     args = parser.parse_args()
 
-    grouper = UnsortedInputGrouper(args.infile, PercentileGroup, args.group, args.delimiter)
-    grouper.group()
+    run_grouping(args.infile, PercentileGroup, args.group, args.delimiter, args.ordered)
 

@@ -5,7 +5,7 @@ import sys
 import argparse
 import traceback
 from input_handling import findNumber
-from group import Group,UnsortedInputGrouper
+from group import Group,run_grouping
 
 class MedianGroup(Group):
     def __init__(self, tup):
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
+    parser.add_argument('-o', '--ordered', action='store_true', default=False, help='input is sorted by group')
     args = parser.parse_args()
 
-    grouper = UnsortedInputGrouper(args.infile, MedianGroup, args.group, args.delimiter)
-    grouper.group()
+    run_grouping(args.infile, MedianGroup, args.group, args.delimiter, args.ordered)
