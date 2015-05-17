@@ -1,13 +1,10 @@
 #!/usr/bin/python
 
-import logging
 import argparse
 import sys
 import traceback
 import os
 import copy
-import math
-import numpy
 from input_handling import findNumber
 from command import Command,PerformReturn
 
@@ -111,7 +108,7 @@ def group(infile, outfile, group_col, action, action_col=-1, delimiter=None, fuz
 
 		groups[g] = command.on_row(g, groups[g], chunks[action_col])
 	   except Exception as e:
-           	logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
+           	sys.stderr.write('Error on input: %s%s\n%s' % (line, e, traceback.format_exc()))
 
 	if delimiter == None:
 		delimiter = ' '		
@@ -133,21 +130,7 @@ if __name__ == "__main__":
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-f', '--fuzzy', default=None, help='Fuzz the grouping')
     parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
-    parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')
     args = parser.parse_args()
-
-    # set up logging
-    if args.quiet:
-        level = logging.WARNING
-    elif args.verbose:
-        level = logging.DEBUG
-    else:
-        level = logging.INFO
-    logging.basicConfig(
-        format = "%(levelname) -10s %(asctime)s %(module)s:%(lineno) -7s %(message)s",
-        level = level
-    )
 
     main()
 
