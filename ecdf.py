@@ -56,7 +56,8 @@ def ecdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=No
 
     accum = 0
     keys = sorted(bins)
-    outfile.write(str(key) + jdelim + '0.0\n')
+    if len(keys) > 0:
+        outfile.write(str(keys[0]) + jdelim + '0.0\n')
     for key in keys:
         accum += bins[key]
         outfile.write(str(key) + jdelim + str(Decimal(accum) / total) + '\n')
