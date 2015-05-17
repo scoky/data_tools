@@ -26,7 +26,7 @@ class SortedInputGrouper(object):
         
         self.chunks = line.rstrip().split(self.delimiter)
         self.tup = [self.chunks[g] for g in self.group_cols]
-        while self.tup:
+        while self.tup != None:
             yield self._gather()
                 
     def _gather(self):
@@ -75,6 +75,17 @@ class UnsortedInputGrouper(object):
             self.dict[key].add(chunks)
         for key in keys:
             self.dict[key].done()
+            
+def run_grouping(infile, group_cls=Group, group_cols=[0], delimiter=None, ordered=False):
+    if ordered:
+        grouper = SortedInputGrouper(infile, group_cols, delimiter)
+        for chunk in grouper.group():
+            g = group_cls(grouper.tup)
+            for item in chunk:
+                g.add(item)
+            g.done()
+    else:
+        UnsortedInputGrouper(infile, group_cls, group_cols, delimiter).group()
 
 commands = {
 'unique' : 	Command(set(), PerformReturn(lambda g,a,b: a.add(b)).perform, lambda g,a: str(len(a))),
