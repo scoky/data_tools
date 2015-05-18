@@ -39,6 +39,5 @@ if __name__ == "__main__":
         args.curvef = eval(args.curve)
     
     x = linspace(args.begin, args.end, args.number)
-    y = args.curvef(x, *args.params)
-    for xx,yy in zip(x,y):
-        args.outfile.write(str(xx) + ' ' + str(yy) + '\n')
+    for xx in x:
+        args.outfile.write(str(xx) + ' ' + str(args.curvef(xx, *args.params)) + '\n')

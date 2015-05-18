@@ -9,6 +9,7 @@ from math import factorial
 from group import Group,UnsortedInputGrouper
 from scipy.optimize import curve_fit as cfit
 import scipy.stats as ss
+#import scipy.special
 
 def first_degree(xdata, a, b):
     return a * xdata + b
@@ -40,6 +41,9 @@ def pareto(xdata, shape, location, scale):
 def paretoCDF(xdata, shape, location, scale):
     return 1 - np.power(1 + shape * (xdata - location) / scale, -1 / shape)
 
+#def zipf(xdata, a):
+#    return np.power(xdata, -a)/scipy.special.zetac(a)
+
 class FitGroup(Group):
     def __init__(self, tup):
         super(FitGroup, self).__init__(tup)
@@ -56,7 +60,10 @@ class FitGroup(Group):
             if len(self.tup) > 0:
                 args.outfile.write(jdelim.join(self.tup) + jdelim)
             popt, pcov = cfit(i, self.xdata, self.ydata, p0=args.params)
-            pvar = np.diag(pcov)
+            try:
+                pvar = np.diag(pcov)
+            except:
+                pvar = [None]
             args.outfile.write(jdelim.join(map(str, popt)) + jdelim + curve + jdelim + jdelim.join(map(str, pvar)) + '\n')
 
 if __name__ == "__main__":
