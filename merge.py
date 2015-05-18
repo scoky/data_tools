@@ -10,7 +10,7 @@ if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
                                      description='Merge files on column(s)')
-    parser.add_argument('infiles', nargs='+', type=argparse.FileType('r'), default=[sys.stdin])
+    parser.add_argument('infiles', nargs='*', type=argparse.FileType('r'), default=[sys.stdin])
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
     parser.add_argument('-d', '--delimiter', default=None)
