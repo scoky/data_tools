@@ -4,7 +4,7 @@ import os
 import sys
 import argparse
 import traceback
-from decimal import Decimal
+from decimal import Decimal,InvalidOperation
 from group import Group,UnsortedInputGrouper
 
 class ResampleGroup(Group):
@@ -58,7 +58,10 @@ class ResampleGroup(Group):
         pass
 
 def linear(p1, p2, x):
-    return p1[1] + (p2[1] - p1[1]) * (x - p1[0]) / (p2[0] - p1[0])
+    try:
+        return p1[1] + (p2[1] - p1[1]) * (x - p1[0]) / (p2[0] - p1[0])
+    except InvalidOperation:
+        return p1[1]   # p2[0] == p1[0]
 
 if __name__ == "__main__":
     # set up command line args
