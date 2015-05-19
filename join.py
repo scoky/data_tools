@@ -14,7 +14,7 @@ if __name__ == "__main__":
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
     parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-i', '--inner', action='store_true', default=False, help='inner merge')
+    parser.add_argument('-i', '--inner', action='store_true', default=False, help='inner join')
     args = parser.parse_args()
     if len(args.columns) == 1:
         args.columns = args.columns*len(args.infiles)
@@ -38,9 +38,8 @@ if __name__ == "__main__":
     for line in args.infiles[0]:
         line = line.rstrip()
         chunk = line.split(args.delimiter, col+1)[col]
-        counts[chunk] += 1
         if chunk in merge:
             line += jdelim + merge[chunk]
-        if not args.inner or counts[chunk] == len(args.infiles):
+        if not args.inner or counts[chunk] == len(args.infiles) - 1:
             args.outfile.write(line + '\n')
 
