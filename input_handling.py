@@ -19,6 +19,12 @@ ip_pattern = re.compile("(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})")
 def findIdentity(value):
     return value
 
+def findFloat(value):
+    return float(value)
+
+def findInt(value):
+    return int(value)
+
 # Search an input value for a number
 def findNumber(value):
     try:
