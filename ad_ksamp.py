@@ -29,7 +29,7 @@ def KS_test(groups, outfile):
                 break
             if len(v.samples) < args.ignore:
                 continue
-            outfile.write(jdelim.join(u.tup + v.tup + map(str, anderson_ksamp(u.samples, v.samples))) + '\n')
+            outfile.write(jdelim.join(u.tup + v.tup + map(str, anderson_ksamp([u.samples, v.samples]))) + '\n')
 
 if __name__ == "__main__":
     # set up command line args
