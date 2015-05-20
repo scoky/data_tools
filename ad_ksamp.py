@@ -4,6 +4,7 @@ import os
 import sys
 import argparse
 import traceback
+import random
 from group import Group,UnsortedInputGrouper
 from scipy.stats import anderson_ksamp
 
@@ -29,7 +30,11 @@ def KS_test(groups, outfile):
                 break
             if len(v.samples) < args.ignore:
                 continue
-            outfile.write(jdelim.join(u.tup + v.tup + map(str, anderson_ksamp([u.samples, v.samples]))) + '\n')
+            if args.random != None:
+                for i in range(args.random):
+                    outfile.write(jdelim.join(u.tup + v.tup + map(str, anderson_ksamp([random.sample(u.samples, args.subsample), random.sample(v.samples, args.subsample)]))) + '\n')
+            else:
+                outfile.write(jdelim.join(u.tup + v.tup + map(str, anderson_ksamp([u.samples, v.samples]))) + '\n')
 
 if __name__ == "__main__":
     # set up command line args
@@ -41,6 +46,8 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--column', type=int, default=1)
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[0])
     parser.add_argument('-d', '--delimiter', default=None)
+    parser.add_argument('-r', '--random', default=None, type=int, help='perform on r random subsamples')
+    parser.add_argument('-s', '--subsample', default=100, type=int, help='subsample size')
     args = parser.parse_args()
 
     args.groups = []
