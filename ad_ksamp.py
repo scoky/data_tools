@@ -8,9 +8,9 @@ import random
 from group import Group,UnsortedInputGrouper
 from scipy.stats import anderson_ksamp
 
-class KSGroup(Group):
+class ADGroup(Group):
     def __init__(self, tup):
-        super(KSGroup, self).__init__(tup)
+        super(ADGroup, self).__init__(tup)
         args.groups.append(self)
         self.samples = []
 
@@ -20,7 +20,7 @@ class KSGroup(Group):
     def done(self):
         pass
 
-def KS_test(groups, outfile):
+def AD_test(groups, outfile):
     jdelim = args.delimiter if args.delimiter != None else ' '
     for i,u in enumerate(groups):
         if len(u.samples) < args.ignore:
@@ -31,7 +31,7 @@ def KS_test(groups, outfile):
             if len(v.samples) < args.ignore:
                 continue
             if args.random != None:
-                for i in range(args.random):
+                for k in range(args.random):
                     outfile.write(jdelim.join(u.tup + v.tup + map(str, anderson_ksamp([random.sample(u.samples, args.subsample), random.sample(v.samples, args.subsample)]))) + '\n')
             else:
                 outfile.write(jdelim.join(u.tup + v.tup + map(str, anderson_ksamp([u.samples, v.samples]))) + '\n')
@@ -51,6 +51,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     args.groups = []
-    grouper = UnsortedInputGrouper(args.infile, KSGroup, args.group, args.delimiter)
+    grouper = UnsortedInputGrouper(args.infile, ADGroup, args.group, args.delimiter)
     grouper.group()
-    KS_test(args.groups, args.outfile)
+    AD_test(args.groups, args.outfile)
