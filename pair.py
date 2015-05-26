@@ -17,7 +17,10 @@ class PairGroup(Group):
             for item in self.items:
                 if len(self.tup) > 0:
                     args.outfile.write(args.jdelim.join(self.tup) + args.jdelim)
-                args.outfile.write(val + args.jdelim + item + '\n')
+                if val <= item:
+                    args.outfile.write(val + args.jdelim + item + '\n')
+                else:
+                    args.outfile.write(item + args.jdelim + val + '\n')
             self.items.add(val)
 
     def done(self):
