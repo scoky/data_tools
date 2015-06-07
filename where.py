@@ -75,8 +75,10 @@ if __name__ == "__main__":
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-f', '--findNumber', action='store_true', default=False, help='find number in column values')
+    parser.add_argument('-n', '--numerical', action='store_true', default=False, help='treat columns values as numbers')
     args = parser.parse_args()
-    if args.findNumber:
+    args.numerical |= args.findNumber
+    if args.numerical:
         pattern = re.compile('([pcn]\[\d+\])')
         args.statement = pattern.sub(r'findNumber(\1)', args.statement)
         
