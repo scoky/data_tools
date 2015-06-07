@@ -22,8 +22,12 @@ class SampleGroup(Group):
         prefix = ''
         if len(self.tup) > 0:
             prefix = jdelim.join(self.tup) + jdelim
-        for val in random.sample(self.row, args.number):
-            args.outfile.write(prefix + val + '\n')
+        if args.replacement:
+            for val in (random.choice(self.row) for n in range(args.number)):
+                args.outfile.write(prefix + val + '\n')
+        else:
+            for val in random.sample(self.row, args.number):
+                args.outfile.write(prefix + val + '\n')
 
 if __name__ == "__main__":
     # set up command line args
@@ -35,6 +39,7 @@ if __name__ == "__main__":
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-o', '--ordered', action='store_true', default=False, help='input is sorted by group')
+    parser.add_argument('-r', '--replacement', action='store_true', default=False, help='with replacement')
     parser.add_argument('-s', '--seed', type=int, default=12345)
     parser.add_argument('-n', '--number', type=int, default=10, help='number of samples')
     args = parser.parse_args()
