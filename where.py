@@ -79,7 +79,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args.numerical |= args.findNumber
     if args.numerical:
-        pattern = re.compile('([pcn]\[\d+\])')
+        pattern = re.compile('([pcn]\[-?\d+\])')
         args.statement = pattern.sub(r'findNumber(\1)', args.statement)
         
     # Replace integers with indices into an array and convert to a lambda expression
