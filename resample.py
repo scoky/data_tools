@@ -63,6 +63,9 @@ def linear(p1, p2, x):
     except InvalidOperation:
         return p1[1]   # p2[0] == p1[0]
 
+def none(p1, p2, x):
+    return p1[1]
+
 if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
@@ -70,7 +73,7 @@ if __name__ == "__main__":
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-f', '--frequency', type=Decimal, default=Decimal('1'))
-    parser.add_argument('-i', '--interpolate', choices=['linear'], default='linear')
+    parser.add_argument('-i', '--interpolate', choices=['linear', 'none'], default='linear')
     parser.add_argument('-s', '--sync', action='store_true', default=False)
     parser.add_argument('-e', '--expand', action='store_true', default=False)
     parser.add_argument('-x', '--xdata', type=int, default=0)
