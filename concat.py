@@ -15,12 +15,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     jdelim = args.delimiter if args.delimiter != None else ' '
-    lines = []
-    for infile in args.infiles:
-        for i,line in enumerate(infile):
-            if len(lines) > i:
-                lines[i] += jdelim + line.rstrip()
+    while len(args.infiles) > 0:
+        lines = [infile.readline().rstrip() for infile in args.infiles]
+        out = []
+        for i,line in enumerate(lines):
+            if line:
+                out.append(line)
             else:
-                lines.append(line.rstrip())
-    for line in lines:
-        args.outfile.write(line + '\n')
+                del args.infiles[i]
+        if len(out) > 0:
+            args.outfile.write(jdelim.join(out) + '\n')
