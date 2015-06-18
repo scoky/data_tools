@@ -13,17 +13,21 @@ class IntervalGroup(Group):
         super(IntervalGroup, self).__init__(tup)
         self.last = None
         self.jdelim = args.delimiter if args.delimiter != None else ' '
+        self.chunks = None
 
     def add(self, chunks):
         val = findNumber(chunks[args.column])
         if not args.beginning:
             args.beginning = val
         diff = val - self.last if self.last != None else val - args.beginning
-        args.outfile.write(self.jdelim.join(chunks+[str(diff)]) + '\n')
-        self.last = val
+        if self.last != None or args.leading:
+            args.outfile.write(self.jdelim.join(chunks+[str(diff)]) + '\n')
+        args.ending = self.last = val
+        self.chunks = chunks
 
     def done(self):
-        pass
+        if args.ending:
+            args.outfile.write(self.jdelim.join(self.chunks+[str(args.ending - self.last)]) + '\n')
 
 if __name__ == "__main__":
     # set up command line args
@@ -34,8 +38,11 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--column', type=int, default=0)
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
+    parser.add_argument('-l', '--leading', action='store_true', default=False)
+    parser.add_argument('-t', '--trailing', action='store_true', default=False)
     args = parser.parse_args()
     args.beginning = None
+    args.ending = None
 
     grouper = UnsortedInputGrouper(args.infile, IntervalGroup, args.group, args.delimiter)
     grouper.group()
