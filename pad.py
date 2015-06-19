@@ -19,7 +19,7 @@ class PadGroup(Group):
     def done(self):
         for element in args.elements:
             if element not in self.present:
-                args.outfile.write((args.pad + '\n') % (self.tup, element))
+                args.outfile.write((args.pad + '\n') % (args.jdelim.join(self.tup), element))
                 
 
 if __name__ == "__main__":
