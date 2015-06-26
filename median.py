@@ -21,7 +21,13 @@ class MedianGroup(Group):
         jdelim = args.delimiter if args.delimiter != None else ' '
         if len(self.tup) > 0:
             args.outfile.write(jdelim.join(self.tup) + jdelim)
-        args.outfile.write(jdelim.join([str(sorted(r)[len(r)/2]) for r in self.rows]) + '\n')
+        args.outfile.write(jdelim.join([str(computeMedian(r)) for r in self.rows]) + '\n')
+
+def computeMedian(r):
+    if len(r) % 2 == 1: # Odd length
+        return sorted(r)[len(r)/2]
+    else:
+        return sum(sorted(r)[(len(r)/2)-1:(len(r)/2)+1]) / 2
 
 if __name__ == "__main__":
     # set up command line args
