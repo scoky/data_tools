@@ -23,7 +23,7 @@ if __name__ == "__main__":
     res = set()
     for infile,col in zip(args.infiles, args.columns):
         for line in infile:
-            chunk = line.rstrip().split(args.delimiter, col+1)[col]
+            chunk = line.rstrip().split(args.delimiter)[col]
             if chunk not in res:
                 res.add(chunk)
                 args.outfile.write(chunk + '\n')

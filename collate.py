@@ -46,10 +46,10 @@ class Collater(object):
         self.run = False
 
     def getStrKey(self, line, col):
-        return line.split(self.delimiter, col+1)[col]
+        return line.split(self.delimiter)[col]
 
     def getNumKey(self, line, col):
-        return findNumber(line.split(self.delimiter, col+1)[col])
+        return findNumber(line.split(self.delimiter)[col])
     
 def printLine(line):
     args.outfile.write(line)

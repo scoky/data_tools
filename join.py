@@ -29,7 +29,7 @@ if __name__ == "__main__":
         infile,col = tup
         for line in infile:
             line = line.rstrip()
-            chunk = line.split(args.delimiter, col+1)[col]
+            chunk = line.split(args.delimiter)[col]
             merge[chunk] += '#JOIN#'+str(i) + jdelim + line + jdelim
             counts[chunk] += 1
         infile.close()
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     col = args.columns[0]
     for line in args.infiles[0]:
         line = line.rstrip()
-        chunk = line.split(args.delimiter, col+1)[col]
+        chunk = line.split(args.delimiter)[col]
         if chunk in merge:
             line += jdelim + merge[chunk]
         if not args.inner or counts[chunk] == len(args.infiles) - 1:

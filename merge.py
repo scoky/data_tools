@@ -29,7 +29,7 @@ if __name__ == "__main__":
         infile,col = tup
         for line in infile:
             line = line.rstrip()
-            chunk = line.split(args.delimiter, col+1)[col]
+            chunk = line.split(args.delimiter)[col]
             merge[chunk] += '#MERGE#'+str(i) + jdelim + line + jdelim
             counts[chunk] += 1
 

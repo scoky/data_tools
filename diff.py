@@ -25,7 +25,7 @@ if __name__ == "__main__":
     first = True
     for infile,col in zip(args.infiles, args.columns):
         for line in infile:
-            chunk = line.rstrip().split(args.delimiter, col+1)[col]
+            chunk = line.rstrip().split(args.delimiter)[col]
             allitems.append(chunk)
             if first:
                 res.add(chunk)
