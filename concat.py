@@ -18,10 +18,13 @@ if __name__ == "__main__":
     while len(args.infiles) > 0:
         lines = [infile.readline().rstrip() for infile in args.infiles]
         out = []
+        remove = []
         for i,line in enumerate(lines):
             if line:
                 out.append(line)
             else:
-                del args.infiles[i]
+                remove.append(i)
+        for i in reversed(remove):
+            del args.infiles[i]
         if len(out) > 0:
             args.outfile.write(jdelim.join(out) + '\n')
