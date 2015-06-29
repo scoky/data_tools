@@ -14,7 +14,7 @@ class SetGroup(Group):
         self.jdelim = args.delimiter if args.delimiter != None else ' '
 
     def add(self, chunks):
-        val = chunks[args.column]
+        val = self.jdelim.join( (chunks[c] for c in args.columns) )
         if val not in self.uniques:
             self.uniques.add(val)
             if args.append:
@@ -33,7 +33,7 @@ if __name__ == "__main__":
                                      description='Compute the set of strings from a column in files. Maintains first appearance order.')
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--column', type=int, default=0)
+    parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-a', '--append', action='store_true', default=False)
