@@ -26,7 +26,7 @@ class IntervalGroup(Group):
         self.chunks = chunks
 
     def done(self):
-        if args.ending:
+        if args.ending and args.trailing:
             args.outfile.write(self.jdelim.join(self.chunks+[str(args.ending - self.last)]) + '\n')
 
 if __name__ == "__main__":
