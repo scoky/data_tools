@@ -37,7 +37,7 @@ if __name__ == "__main__":
             count += 1
         matrixDict[(labelToPos[first], labelToPos[second])] = distance
 
-    matrix = [[0]*len(count) for i in range(len(count))]
+    matrix = [[0]*count for i in range(count)]
     for keys,distance in matrixDict.iteritems():
         matrix[keys[0]][keys[1]] = distance
         matrix[keys[1]][keys[0]] = distance
