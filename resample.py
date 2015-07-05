@@ -74,7 +74,7 @@ class ResampleGroup(Group):
         pass
 
     def done(self):
-        while args.terminate and self.x <= args.terminate:
+        while args.terminate != None and self.x <= args.terminate:
             if len(self.tup) > 0:
                 args.outfile.write(self.jdelim.join(self.tup) + self.jdelim)
             args.outfile.write(str(self.x) + self.jdelim + str(self.point[1]) + '\n')
