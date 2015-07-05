@@ -16,7 +16,7 @@ class ResampleGroup(Group):
     def add(self, chunks):
         npoint = (Decimal(chunks[args.xdata]), Decimal(chunks[args.ydata]))
         
-        if args.begin:
+        if args.begin != None:
             self.x = args.begin
             while self.x < npoint[0]:
                 if len(self.tup) > 0:
@@ -54,16 +54,15 @@ class ResampleGroup(Group):
         self.point = npoint
 
     def addAfterExpand(self, chunks):
-        if args.terminate and self.x > args.terminate:
-            self.add = self.addNothing
-            return
-
         npoint = (Decimal(chunks[args.xdata]), Decimal(chunks[args.ydata]))
         if npoint[0] >= self.x:
             # Unwind to compute first two points, so future points can be computed via deltas
             y = args.interpolatef(self.point, npoint, self.x)
             yd = args.interpolatef(self.point, npoint, self.x + args.frequency) - y
             while npoint[0] >= self.x:
+                if args.terminate != None and self.x > args.terminate:
+                    self.add = self.addNothing
+                    return
                 if len(self.tup) > 0:
                     args.outfile.write(self.jdelim.join(self.tup) + self.jdelim)
                 args.outfile.write(str(self.x) + self.jdelim + str(y) + '\n')
