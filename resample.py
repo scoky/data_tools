@@ -36,7 +36,7 @@ class ResampleGroup(Group):
 
     def addAfter(self, chunks):
         if args.terminate and self.x > args.terminate:
-            self.add = addNothing
+            self.add = self.addNothing
             return
 
         npoint = (Decimal(chunks[args.xdata]), Decimal(chunks[args.ydata]))
@@ -55,7 +55,7 @@ class ResampleGroup(Group):
 
     def addAfterExpand(self, chunks):
         if args.terminate and self.x > args.terminate:
-            self.add = addNothing
+            self.add = self.addNothing
             return
 
         npoint = (Decimal(chunks[args.xdata]), Decimal(chunks[args.ydata]))
