@@ -7,28 +7,48 @@ import traceback
 from input_handling import findNumber
 from group import Group,UnsortedInputGrouper
 from decimal import Decimal
+from heapq import heappush, heappop
 
 class MaxGroup(Group):
     def __init__(self, tup):
         super(MaxGroup, self).__init__(tup)
-        self.maxes = [Decimal('-Inf')]*len(args.columns)
-        self.rows = [[]]*len(args.columns)
+        self.maxes = Decimal('-Inf')
+        self.rows = None
 
     def add(self, chunks):
-        vals = [findNumber(chunks[i]) for i in args.columns]
-        for i,v in enumerate(vals):
-            if v > self.maxes[i]:
-                self.maxes[i] = v
-                self.rows[i] = chunks
+        val = findNumber(chunks[args.column])
+        if val > self.maxes:
+            self.maxes = val
+            self.rows = chunks
+
+    def done(self):
+        jdelim = args.delimiter if args.delimiter != None else ' '
+        if args.append:
+            args.outfile.write(jdelim.join(self.rows) + '\n')
+        else:
+            if len(self.tup) > 0:
+                args.outfile.write(jdelim.join(self.tup) + jdelim)
+            args.outfile.write(str(self.maxes) + '\n')
+
+class KMaxGroup(Group):
+    def __init__(self, tup):
+        super(KMaxGroup, self).__init__(tup)
+        self.mines = []
+
+    def add(self, chunks):
+        heappush(self.mines, findNumber(chunks[args.column]))
+        if len(self.mines) > args.k_min:
+            heappop(self.mines)
 
     def done(self):
         jdelim = args.delimiter if args.delimiter != None else ' '
         if len(self.tup) > 0:
-            args.outfile.write(jdelim.join(self.tup) + jdelim)
-        if args.append:
-            args.outfile.write('\n'.join([jdelim.join(chunks) for chunks in self.rows]) + '\n')
+            prefix = jdelim.join(self.tup) + jdelim
         else:
-            args.outfile.write(jdelim.join(map(str, self.maxes)) + '\n')
+            prefix = ''
+
+        for v in sorted(self.mines):
+            args.outfile.write(prefix + str(v) + '\n')
 
 if __name__ == "__main__":
     # set up command line args
@@ -36,11 +56,15 @@ if __name__ == "__main__":
                                      description='Compute maximum of column(s)')
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
+    parser.add_argument('-c', '--column', type=int, default=0)
+    parser.add_argument('-k', '--k_min', type=int, default=1)
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-a', '--append', action='store_true', default=False, help='append result to columns')
     args = parser.parse_args()
 
-    grouper = UnsortedInputGrouper(args.infile, MaxGroup, args.group, args.delimiter)
+    if args.k_min > 1:
+        grouper = UnsortedInputGrouper(args.infile, KMaxGroup, args.group, args.delimiter)
+    else:
+        grouper = UnsortedInputGrouper(args.infile, MaxGroup, args.group, args.delimiter)
     grouper.group()
