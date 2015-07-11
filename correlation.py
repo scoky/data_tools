@@ -4,9 +4,7 @@ import os
 import sys
 import argparse
 import traceback
-from input_handling import findNumber
 from group import Group,UnsortedInputGrouper
-from decimal import Decimal
 from numpy import corrcoef
 
 class CorrelationGroup(Group):
@@ -15,7 +13,7 @@ class CorrelationGroup(Group):
         self.vals = []
 
     def add(self, chunks):
-        self.vals.append([findNumber(chunks[i]) for i in args.columns])
+        self.vals.append([float(chunks[i]) for i in args.columns])
 
     def done(self):
         if len(self.tup) > 0:
