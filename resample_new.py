@@ -4,7 +4,7 @@ import os
 import sys
 import argparse
 import traceback
-from group import Group,UnsortedInputGrouper
+from group import Group,run_grouping
 from scipy.interpolate import interp1d
 import numpy as np
 
