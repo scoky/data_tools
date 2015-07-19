@@ -26,7 +26,7 @@ class ResampleGroup(Group):
         if len(self.tup) > 0:
                 prefix = args.jdelim.join(self.tup) + args.jdelim
         for x,y in zip(args.xnew, ynew):
-            args.outfile.write(prefix + str(x) + self.jdelim + str(y) + '\n')
+            args.outfile.write(prefix + str(x) + args.jdelim + str(y) + '\n')
 
 if __name__ == "__main__":
     # set up command line args
