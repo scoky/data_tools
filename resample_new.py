@@ -29,7 +29,7 @@ class ResampleGroup(Group):
             args.outfile.write(prefix + str(x) + args.jdelim + str(y) + '\n')
             
 def interp_linear(x, y):
-    return interpolate.interp1d(x, x, kind=args.interpolate, copy=False)
+    return interpolate.interp1d(x, y, kind=args.interpolate, copy=False)
 
 if __name__ == "__main__":
     # set up command line args
