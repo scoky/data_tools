@@ -35,7 +35,7 @@ if __name__ == "__main__":
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-i', '--interpolate', choices=['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic'], default='linear')
-    parser.add_argument('-s', '--space', choices=['linear', 'log'], default='liner')
+    parser.add_argument('-s', '--space', choices=['linear', 'log'], default='linear')
     parser.add_argument('-b', '--begin', type=float, default=None, help='value to begin resampling at')
     parser.add_argument('-t', '--terminate', type=float, default=None, help='value to terminate resampling at')
     parser.add_argument('-n', '--number', type=int, default=10, help='total number of data points to sample')
