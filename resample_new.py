@@ -28,7 +28,7 @@ class ResampleGroup(Group):
         for x,y in zip(args.xnew, ynew):
             args.outfile.write(prefix + str(x) + args.jdelim + str(y) + '\n')
             
-def interp_linear(x, y)
+def interp_linear(x, y):
     return interp1d(x, x, kind=args.interpolate, copy=False)
 
 if __name__ == "__main__":
