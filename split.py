@@ -13,7 +13,7 @@ class SplitGroup(Group):
         super(SplitGroup, self).__init__(tup)
         self.filename = args.prefix+'-'.join(tup)
         self.jdelim = args.delimiter if args.delimiter != None else ' '
-        args.file_dict[self.filename] = open(self.filename, 'w')
+        args.file_dict[self.filename] = open(self.filename, 'a' if args.append else 'w')
 
     def add(self, chunks):
         if self.filename not in args.file_dict:
@@ -31,6 +31,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-p', '--prefix', default='split-')
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
+    parser.add_argument('-a', '--append', default=False, action='store_true')
     args = parser.parse_args()
     args.file_dict = FileHandleDict()
 
