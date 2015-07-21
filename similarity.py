@@ -77,6 +77,18 @@ def metric_jaccard(vec1, vec2, state=None):
 
 def metric_jaccard_m(args):
     return metric_jaccard(*args)
+    
+def metric_euclidean(vec1, vec2, state=None):
+    value = 0
+    d = defaultdict(int)
+    for p1 in vec1:
+        d[p1[0]] = p1[1]
+    for p2 in vec2:
+        value += (d[p2[0]] - p2[1])**2
+    return math.sqrt(value), state
+
+def metric_euclidean_m(args):
+    return metric_euclidean(*args)
      
 class DistanceGroup(Group):
     def __init__(self, tup):
@@ -110,10 +122,10 @@ def multithreaded():
 if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Compute distance between list')
+                                     description='Compute similarity/distance between groups')
     parser.add_argument('infiles', nargs='*', type=argparse.FileType('r'), default=[sys.stdin])
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-m', '--metric', default='cosine', choices=['cosine', 'jaccard', 'hamming', 'levenshtein', 'angular'])
+    parser.add_argument('-m', '--metric', default='cosine', choices=['cosine', 'jaccard', 'hamming', 'levenshtein', 'angular', 'euclidean'])
     parser.add_argument('-k', '--key', type=int, default=0)
     parser.add_argument('-v', '--value', type=int, default=1)
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
