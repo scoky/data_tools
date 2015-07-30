@@ -24,7 +24,7 @@ class DBSCANGroup(Group):
         self.neighbors = deque()
 
     def add(self, chunks):
-        n = Neighbor(findNumber(line.rstrip().split()[args.column]), line.rstrip())
+        n = Neighbor(findNumber(chunks[args.column]), args.jdelim.join(chunks))
 
         # Update neighbor counts
         oldest = None
