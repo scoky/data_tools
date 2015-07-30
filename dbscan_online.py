@@ -24,7 +24,7 @@ class DBSCANGroup(Group):
         self.neighbors = deque()
 
     def add(self, chunks):
-        n = Neighbor(findNumber(n.line.split()[args.column]), line.rstrip())
+        n = Neighbor(findNumber(line.rstrip().split()[args.column]), line.rstrip())
 
         # Update neighbor counts
         oldest = None
@@ -63,7 +63,6 @@ if __name__ == "__main__":
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-c', '--column', type=int, default=0)
-    parser.add_argument('-r', '--range', type=int, default=2)
     parser.add_argument('-e', '--epsilon', type=float, default=0.5)
     parser.add_argument('-m', '--min_samples', type=int, default=5)
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
