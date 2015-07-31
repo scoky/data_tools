@@ -5,6 +5,7 @@ import sys
 import argparse
 import traceback
 from input_handling import findNumber
+from decimal import Decimal
 from group import Group,run_grouping
 
 def dist(tx, ty):
@@ -97,7 +98,7 @@ if __name__ == "__main__":
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-c', '--column', type=int, default=0)
-    parser.add_argument('-e', '--epsilon', type=float, default=0.5)
+    parser.add_argument('-e', '--epsilon', type=Decimal, default=Decimal('0.5'))
     parser.add_argument('-m', '--min_samples', type=int, default=5)
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
