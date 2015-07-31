@@ -68,7 +68,7 @@ class DBSCANGroup(Group):
             if oldest.label != -1:
                 label = oldest.label
             else:
-                label = args.label
+                oldest.label = label = args.label
                 args.label += 1
 
             n.label = label
