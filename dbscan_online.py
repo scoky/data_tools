@@ -4,7 +4,6 @@ import os
 import sys
 import argparse
 import traceback
-from collections import deque
 from input_handling import findNumber
 from group import Group,run_grouping
 
@@ -17,23 +16,50 @@ class Neighbor(object):
         self.line = line
         self.count = 0
         self.label = -1
+        self.next = self.prev = None
+
+    @classmethod    
+    def iterate_forward(cls, head):
+        i = head
+        while i != None:
+            yield i
+            i = i.next
+
+    @classmethod    
+    def iterate_reverse(cls, tail):
+        i = tail
+        while i != None:
+            yield i
+            i = i.prev
+            
+    def neighbors(self):
+        i = self.prev
+        while i != None and dist(i.t, self.t) <= args.epsilon:
+            yield i
+            i = i.prev
+        i = self.next
+        while i != None and dist(i.t, self.t) <= args.epsilon:
+            yield i
+            i = i.next
 
 class DBSCANGroup(Group):
     def __init__(self, tup):
         super(DBSCANGroup, self).__init__(tup)
-        self.neighbors = deque()
+        self.head = self.tail = None
 
     def add(self, chunks):
         n = Neighbor(findNumber(chunks[args.column]), args.jdelim.join(chunks))
 
         # Update neighbor counts
         oldest = None
-        for nn in self.neighbors:
+        for nn in Neighbor.iterate_reverse(self.tail):
             if dist(nn.t, n.t) <= args.epsilon:
                 n.count += 1
                 nn.count += 1
-                if oldest == None:
-                    oldest = nn
+                oldest = nn
+            else:
+                break
+
         # No neighbors for the new element, clear out old data
         if n.count == 0:
             self.empty()
@@ -43,15 +69,23 @@ class DBSCANGroup(Group):
             else:
                 label = args.label
                 args.label += 1
-            for nn in self.neighbors:
-                if nn.label == -1 and dist(nn.t, oldest.t) <= args.epsilon:
+
+            for nn in oldest.neighbors():
+                if nn.label == -1:
                     nn.label = label
-        self.neighbors.append(n)
+
+        # Append onto the end of the list
+        if self.tail:
+            self.tail.next = n
+        else:
+            self.head = n
+        n.prev = self.tail
+        self.tail = n
         
     def empty(self):
-        for nn in self.neighbors:
+        for nn in Neighbor.iterate_forward(self.head):
             args.outfile.write(nn.line + args.jdelim + str(nn.label) + '\n')
-        self.neighbors.clear()
+        self.head = self.tail = None
 
     def done(self):
         self.empty()
