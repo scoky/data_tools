@@ -71,6 +71,7 @@ class DBSCANGroup(Group):
                 label = args.label
                 args.label += 1
 
+            n.label = label
             for nn in oldest.neighbors():
                 if nn.label == -1:
                     nn.label = label
