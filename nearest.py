@@ -28,7 +28,7 @@ class KNearGroup(Group):
             nearest = [abs(x - current) for x in self.past] + [abs(x - current) for x in self.future]
             nearest = sorted(nearest)[:args.k_nearest]
             
-            args.outfile.write(prefix + str(current) + args.jdelim + args.jdelim.join(nearest) + '\n')
+            args.outfile.write(args.prefix + str(current) + args.jdelim + args.jdelim.join(nearest) + '\n')
 
             self.past.append(current)
 
@@ -38,7 +38,7 @@ class KNearGroup(Group):
             nearest = [abs(x - current) for x in self.past] + [abs(x - current) for x in self.future]
             nearest = sorted(nearest)[:args.k_nearest]
 
-            args.outfile.write(prefix + str(current) + args.jdelim + args.jdelim.join(nearest) + '\n')
+            args.outfile.write(args.prefix + str(current) + args.jdelim + args.jdelim.join(nearest) + '\n')
 
             self.past.append(current)
         
