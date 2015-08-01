@@ -31,16 +31,16 @@ class PairFirstGroup(Group):
         super(PairFirstGroup, self).__init__(tup)
         self.first = None
         if len(self.tup) > 0:
-            args.prefix = args.jdelim.join(self.tup) + args.jdelim
+            self.prefix = args.jdelim.join(self.tup) + args.jdelim
         else:
-            args.prefix = ''
+            self.prefix = ''
 
     def add(self, chunks):
         val = chunks[args.column]
         if self.first == None:
             self.first = val
         else:
-            args.outfile.write(args.prefix + self.first + args.jdelim + val + '\n')
+            args.outfile.write(self.prefix + self.first + args.jdelim + val + '\n')
 
     def done(self):
         pass
