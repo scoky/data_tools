@@ -15,7 +15,7 @@ class KNearGroup(Group):
         self.past = deque()
         self.future = deque()
         if len(self.tup) > 0:
-            args.prefix = args.jdelim.join(self.tup) + jdelim
+            args.prefix = args.jdelim.join(self.tup) + args.jdelim
         else:
             args.prefix = ''
 
