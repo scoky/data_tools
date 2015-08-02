@@ -31,6 +31,8 @@ class KNearGroup(Group):
             args.outfile.write(args.prefix + str(current) + args.jdelim + args.jdelim.join(map(str, nearest)) + '\n')
 
             self.past.append(current)
+            while len(self.past) > args.k_nearest:
+                self.past.popleft()
 
     def done(self):
         while len(self.future) > 0:
@@ -41,6 +43,7 @@ class KNearGroup(Group):
             args.outfile.write(args.prefix + str(current) + args.jdelim + args.jdelim.join(map(str, nearest)) + '\n')
 
             self.past.append(current)
+        self.past.clear()
         
 if __name__ == "__main__":
     # set up command line args
