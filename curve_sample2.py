@@ -4,6 +4,7 @@ import os
 import sys
 import argparse
 import traceback
+import random
 from numpy import linspace
 from input_handling import parseLines,findFloat
 
