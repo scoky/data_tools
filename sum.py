@@ -13,8 +13,7 @@ class SumGroup(Group):
         self.sums = [0]*len(args.columns)
 
     def add(self, chunks):
-        vals = [findNumber(chunks[i]) for i in args.columns]
-        self.sums[:] = [v+s for v,s in zip(vals, self.sums)]
+        self.sums = [s+findNumber(chunks[i]) for s,i in zip(self.sums, args.columns)]
 
     def done(self):
         jdelim = args.delimiter if args.delimiter != None else ' '
