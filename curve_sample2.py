@@ -5,8 +5,40 @@ import sys
 import argparse
 import traceback
 import random
-from numpy import linspace
+from bisect import bisect_left
 from input_handling import parseLines,findFloat
+
+class EmpiricalDistribution():
+    @classmethod
+    def fromFile(cls, infile):
+        dist = EmpiricalDistribution([], [])
+        for line in infile:
+            x,y = line.rstrip().split()
+            dist.x.append(float(x))
+            dist.y.append(float(y))
+        return dist
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def f_x(self, y):
+        return self.find(self.y, self.x, y)
+    
+    def find(self, col1, col2, col1_val):
+        index = bisect_left(col1, col1_val)
+        if index == len(col1):
+            return col2[index-1]
+        if index == 0 or col1_val == col1[index]:
+            return col2[index]
+        else: # Use linear interpolation
+            return col2[index-1] + (col2[index] - col2[index-1]) * (col1_val - col1[index-1]) / (col1[index] - col1[index-1])
+            
+    def f_y(self, x):
+        return self.find(self.x, self.y, x)
+
+def empirical_sample():
+    return args.empirical.f_x(random.random())
 
 if __name__ == "__main__":
     # set up command line args
@@ -39,6 +71,9 @@ if __name__ == "__main__":
         for c in args.curve.split('.'):
             mod = getattr(mod, c)
         args.curvef = mod
+    elif args.curve == 'empirical':
+        args.curvef = empirical_sample
+        args.empirical = EmpiricalDistribution.fromFile(args.infile)
     else:
         args.curvef = eval(args.curve)
 
