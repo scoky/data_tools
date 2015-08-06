@@ -4,6 +4,7 @@ import os
 import sys
 import argparse
 import traceback
+import random
 from group import Group,UnsortedInputGrouper
 from scipy.stats import ks_2samp
 
