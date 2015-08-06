@@ -31,10 +31,20 @@ def KS_test(groups, outfile):
             if len(v.samples) < args.ignore:
                 continue
             if args.random != None:
+                verdict = False
                 for k in range(args.random):
-                    outfile.write(jdelim.join(u.tup + v.tup + map(str, ks_2samp(random.sample(u.samples, args.subsample), random.sample(v.samples, args.subsample)))) + '\n')
+                    res = ks_2samp(random.sample(u.samples, args.subsample), random.sample(v.samples, args.subsample))
+                    if res[0] < res[1]:
+                        verdict = True
+                    outfile.write(jdelim.join(u.tup + v.tup + map(str, res)) + '\n')
+                outfile.write('Verdict:' + str(verdict) + '\n')
             else:
-                outfile.write(jdelim.join(u.tup + v.tup + map(str, ks_2samp(u.samples, v.samples))) + '\n')
+                res = ks_2samp(u.samples, v.samples)
+                verdict = False
+                if res[0] < res[1]:
+                    verdict = True
+                outfile.write(jdelim.join(u.tup + v.tup + map(str, res)) + '\n')
+                outfile.write('Verdict:' + str(verdict) + '\n')
 
 if __name__ == "__main__":
     # set up command line args

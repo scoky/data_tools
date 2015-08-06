@@ -8,6 +8,8 @@ import random
 from group import Group,UnsortedInputGrouper
 from scipy.stats import anderson_ksamp
 
+confidence = [25, 10, 5, 2.5, 1]
+
 class ADGroup(Group):
     def __init__(self, tup):
         super(ADGroup, self).__init__(tup)
@@ -31,10 +33,20 @@ def AD_test(groups, outfile):
             if len(v.samples) < args.ignore:
                 continue
             if args.random != None:
+                verdict = False
                 for k in range(args.random):
-                    outfile.write(jdelim.join(u.tup + v.tup + map(str, anderson_ksamp([random.sample(u.samples, args.subsample), random.sample(v.samples, args.subsample)]))) + '\n')
+                    res = anderson_ksamp([random.sample(u.samples, args.subsample), random.sample(v.samples, args.subsample)])
+                    if res[0] < res[1][0]:
+                        verdict = True
+                    outfile.write(jdelim.join(u.tup + v.tup + map(str, res)) + '\n')
+                outfile.write('Verdict:' + str(verdict) + '\n')
             else:
-                outfile.write(jdelim.join(u.tup + v.tup + map(str, anderson_ksamp([u.samples, v.samples]))) + '\n')
+                res = anderson_ksamp([u.samples, v.samples])
+                verdict = False
+                if res[0] < res[1][0]:
+                        verdict = True
+                outfile.write(jdelim.join(u.tup + v.tup + map(str, res)) + '\n')
+                outfile.write('Verdict:' + str(verdict) + '\n')
 
 if __name__ == "__main__":
     # set up command line args
