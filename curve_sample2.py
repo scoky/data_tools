@@ -66,14 +66,14 @@ if __name__ == "__main__":
     else:
         args.source = None
 
-    if args.source:
+    if args.curve == 'empirical':
+        args.curvef = empirical_sample
+        args.empirical = EmpiricalDistribution.fromFile(args.infile)
+    elif args.source:
         mod = args.source
         for c in args.curve.split('.'):
             mod = getattr(mod, c)
         args.curvef = mod
-    elif args.curve == 'empirical':
-        args.curvef = empirical_sample
-        args.empirical = EmpiricalDistribution.fromFile(args.infile)
     else:
         args.curvef = eval(args.curve)
 
