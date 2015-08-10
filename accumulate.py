@@ -12,15 +12,15 @@ class AccumulateGroup(Group):
         super(AccumulateGroup, self).__init__(tup)
         self.total = [0]*len(args.columns)
         self.jdelim = args.delimiter if args.delimiter != None else ' '
-        if args.append:
-            self.prefix = self.jdelim.join(chunks) + self.jdelim
-        elif len(self.tup) > 0:
+        if len(self.tup) > 0:
             self.prefix = self.jdelim.join(self.tup) + self.jdelim
         else:
             self.prefix = ''
 
     def add(self, chunks):
         self.total = [t+findNumber(chunks[c]) for t,c in zip(self.total,args.columns)]
+        if args.append:
+            self.prefix = self.jdelim.join(chunks) + self.jdelim
         args.outfile.write(self.prefix + self.jdelim.join(map(str,self.total)) + '\n')
 
     def done(self):
