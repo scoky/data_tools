@@ -57,7 +57,7 @@ class ResampleGroup(Group):
         self.point = npoint
 
     def done(self):
-        if not args.resample_file and (self.x == Decimal('inf') or args.terminate == None):
+        if self.x == Decimal('inf') or (not args.resample_file and args.terminate == None):
             return
         while True:
             args.outfile.write(self.prefix + str(self.x) + self.jdelim + str(self.point[1]) + '\n')
