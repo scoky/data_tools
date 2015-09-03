@@ -15,9 +15,9 @@ class KNearGroup(Group):
         self.past = deque()
         self.future = deque()
         if len(self.tup) > 0:
-            args.prefix = args.jdelim.join(self.tup) + args.jdelim
+            self.prefix = args.jdelim.join(self.tup) + args.jdelim
         else:
-            args.prefix = ''
+            self.prefix = ''
 
     def add(self, chunks):
         val = findNumber(chunks[args.column])
@@ -28,7 +28,7 @@ class KNearGroup(Group):
             nearest = [abs(x - current) for x in self.past] + [abs(x - current) for x in self.future]
             nearest = sorted(nearest)[:args.k_nearest]
             
-            args.outfile.write(args.prefix + str(current) + args.jdelim + args.jdelim.join(map(str, nearest)) + '\n')
+            args.outfile.write(self.prefix + str(current) + args.jdelim + args.jdelim.join(map(str, nearest)) + '\n')
 
             self.past.append(current)
             while len(self.past) > args.k_nearest:
@@ -40,7 +40,7 @@ class KNearGroup(Group):
             nearest = [abs(x - current) for x in self.past] + [abs(x - current) for x in self.future]
             nearest = sorted(nearest)[:args.k_nearest]
 
-            args.outfile.write(args.prefix + str(current) + args.jdelim + args.jdelim.join(map(str, nearest)) + '\n')
+            args.outfile.write(self.prefix + str(current) + args.jdelim + args.jdelim.join(map(str, nearest)) + '\n')
 
             self.past.append(current)
         self.past.clear()
