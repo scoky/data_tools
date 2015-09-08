@@ -37,7 +37,7 @@ class KMaxGroup(Group):
 
     def add(self, chunks):
         heappush(self.mines, findNumber(chunks[args.column]))
-        if len(self.mines) > args.k_min:
+        if len(self.mines) > args.k_max:
             heappop(self.mines)
 
     def done(self):
@@ -57,13 +57,13 @@ if __name__ == "__main__":
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-c', '--column', type=int, default=0)
-    parser.add_argument('-k', '--k_min', type=int, default=1)
+    parser.add_argument('-k', '--k_max', type=int, default=1)
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-a', '--append', action='store_true', default=False, help='append result to columns')
     args = parser.parse_args()
 
-    if args.k_min > 1:
+    if args.k_max > 1:
         grouper = UnsortedInputGrouper(args.infile, KMaxGroup, args.group, args.delimiter)
     else:
         grouper = UnsortedInputGrouper(args.infile, MaxGroup, args.group, args.delimiter)
