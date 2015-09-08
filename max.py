@@ -5,7 +5,7 @@ import sys
 import argparse
 import traceback
 from input_handling import findNumber
-from group import Group,UnsortedInputGrouper
+from group import Group,run_grouping
 from decimal import Decimal
 from heapq import heappush, heappop
 
@@ -61,10 +61,10 @@ if __name__ == "__main__":
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-a', '--append', action='store_true', default=False, help='append result to columns')
+    parser.add_argument('-o', '--ordered', action='store_true', default=False, help='input is sorted by group')
     args = parser.parse_args()
 
     if args.k_max > 1:
-        grouper = UnsortedInputGrouper(args.infile, KMaxGroup, args.group, args.delimiter)
+        run_grouping(args.infile, KMaxGroup, args.group, args.delimiter, args.ordered)
     else:
-        grouper = UnsortedInputGrouper(args.infile, MaxGroup, args.group, args.delimiter)
-    grouper.group()
+        run_grouping(args.infile, MaxGroup, args.group, args.delimiter, args.ordered)
