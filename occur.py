@@ -11,18 +11,21 @@ from decimal import Decimal
 class OccurGroup(Group):
     def __init__(self, tup):
         super(OccurGroup, self).__init__(tup)
+        if 'first' in args.order:
+            self.add = self.addFirst
+        else:
+            self.add = self.addNothing
+        self.last = None
 
-    def add(self, chunks):
-        if args.order == 'first':
-            args.outfile.write(args.jdelim.join(chunks) + '\n')
-        self.last = chunks
+    def addFirst(self, chunks):
+        args.outfile.write(args.jdelim.join(chunks) + '\n')
         self.add = self.addNothing
         
     def addNothing(self, chunks):
         self.last = chunks
 
     def done(self):
-        if args.order == 'last':
+        if self.last is not None and 'last' in args.order:
             args.outfile.write(args.jdelim.join(self.last) + '\n')
 
 if __name__ == "__main__":
@@ -33,7 +36,7 @@ if __name__ == "__main__":
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-o', '--order', default='first', choices=['first', 'last'])
+    parser.add_argument('-o', '--order', nargs='+', default=['first'], choices=['first', 'last'])
     args = parser.parse_args()
 
     args.jdelim = args.delimiter if args.delimiter != None else ' '
