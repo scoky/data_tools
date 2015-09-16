@@ -36,7 +36,7 @@ class PairFirstGroup(Group):
             self.prefix = ''
 
     def add(self, chunks):
-        val = chunks[args.column]
+        val = args.jdelim.join([chunks[c] for c in args.columns])
         if self.first == None:
             self.first = val
         else:
