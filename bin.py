@@ -11,24 +11,19 @@ from collections import defaultdict
 class BinGroup(Group):
     def __init__(self, tup):
         super(BinGroup, self).__init__(tup)
-        self.bins = []
-        for c in args.columns:
-            self.bins.append(defaultdict(int))
+        self.bins = defaultdict(int)
 
     def add(self, chunks):
-        vals = [args.fuzzy(chunks[i]) for i in args.columns]
-        for v,b in zip(vals, self.bins):
-            b[v] += 1
+        val = args.jdelim.join([args.fuzzy(chunks[i]) for i in args.columns])
+        self.bins[val] += 1
 
     def done(self):
-        jdelim = args.delimiter if args.delimiter != None else ' '
-        for c,b in zip(args.columns, self.bins):
-            for k,v in b.iteritems():
-                if len(self.tup) > 0:
-                    args.outfile.write(jdelim.join(self.tup) + jdelim)
-                if len(args.columns) > 1:
-                    args.outfile.write(str(c) + jdelim)
-                args.outfile.write(jdelim.join(map(str, [k, v])) + '\n')
+        if len(self.tup) > 0:
+            prefix = args.jdelim.join(self.tup) + args.jdelim
+        else:
+            prefix = ''
+        for k,v in self.bins.iteritems():
+            args.outfile.write(prefix + k + args.jdelim + str(v) + '\n')
             
 # Default handling of input value    
 def nofuzz(v):
@@ -50,5 +45,6 @@ if __name__ == "__main__":
         args.fuzzy = nofuzz
     else:
         args.fuzzy = eval(args.fuzzy)
+    args.jdelim = args.delimiter if args.delimiter != None else ' '        
 
     run_grouping(args.infile, BinGroup, args.group, args.delimiter, args.ordered)

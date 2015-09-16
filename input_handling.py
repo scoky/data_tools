@@ -13,6 +13,8 @@ import struct
 from decimal import Decimal
 from decimal import InvalidOperation
 
+COMMENT = '#'
+HEADER = '#HEADER'
 number_pattern = re.compile("(-?\d+\.?\d*(e[\+|\-]?\d+)?)", re.IGNORECASE)
 ip_pattern = re.compile("(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})")
 
@@ -100,6 +102,33 @@ def fileRange(startFile, endFile):
 
 def openFile(filename, opts):
     return gzip.open(filename, opts+'b') if filename.endswith('.gz') else open(filename, opts)
+    
+class ColumnHandler(object):
+    def __init__(self, delim = None):
+        self.delim = delim
+        self.names = {}
+        self.index = 0
+
+    def readHeader(self, line):
+        if line[0] == COMMENT and line.startswith(HEADER):
+            colNames = line.split(delim)[1:]
+            for i,n in enumerate(colNames):
+                self.names[n] = i
+                self.index = max(self.index, i+1)
+
+    def setColumn(self, colName, index):
+        # Fill in holes
+        while self.index > index:
+            self.names[str(self.index)] = self.index
+            self.index += 1
+        self.names[colName] = index
+
+    def outputHeader(self, outfile):
+        cols = sorted(self.names.iteritems(), key = lambda x: x[1])
+        outfile.write(self.delim.join(c[0] for c in cols) + '\n')
+
+    def convert(self, colNames):
+        return [self.names[c] if c in self.names else int(c) for c in colNames]
 
 if __name__ == "__main__":
     # set up command line args

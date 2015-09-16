@@ -12,7 +12,7 @@ class PairUniqueGroup(Group):
         self.items = set()
 
     def add(self, chunks):
-        val = chunks[args.column]
+        val = args.jdelim.join([chunks[c] for c in args.columns])
         if val not in self.items:
             for item in self.items:
                 if len(self.tup) > 0:
@@ -51,7 +51,7 @@ if __name__ == "__main__":
                                      description='Compute all pairs of inputs')
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--column', type=int, default=0)
+    parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
     parser.add_argument('-m', '--method', choices=['all', 'unique', 'first', 'last', 'sequence'], default='unique')
     parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
     parser.add_argument('-d', '--delimiter', default=None)
