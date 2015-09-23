@@ -26,8 +26,11 @@ class SampleGroup(Group):
             for val in (random.choice(self.row) for n in range(args.number)):
                 args.outfile.write(prefix + val + '\n')
         else:
-            for val in random.sample(self.row, args.number):
-                args.outfile.write(prefix + val + '\n')
+            try:
+                for val in random.sample(self.row, args.number):
+                    args.outfile.write(prefix + val + '\n')
+            except ValueError:
+                pass
 
 if __name__ == "__main__":
     # set up command line args
