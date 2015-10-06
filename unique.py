@@ -9,20 +9,17 @@ from group import Group,run_grouping
 class UniqueGroup(Group):
     def __init__(self, tup):
         super(UniqueGroup, self).__init__(tup)
-        self.sets = []
-        for c in args.columns:
-            self.sets.append(set())
+        self.sets = set()
+        self.jdelim = args.delimiter if args.delimiter != None else ' '
 
     def add(self, chunks):
-        vals = [chunks[i] for i in args.columns]
-        for v,s in zip(vals, self.sets):
-            s.add(v)
+        val = self.jdelim.join( (chunks[c] for c in args.columns) )
+        self.sets.add(val)
 
     def done(self):
-        jdelim = args.delimiter if args.delimiter != None else ' '
         if len(self.tup) > 0:
-            args.outfile.write(jdelim.join(self.tup) + jdelim)
-        args.outfile.write(jdelim.join(map(str, map(len, self.sets))) + '\n')
+            args.outfile.write(self.jdelim.join(self.tup) + self.jdelim)
+        args.outfile.write(str(len(self.sets)) + '\n')
 
 if __name__ == "__main__":
     # set up command line args
