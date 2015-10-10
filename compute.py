@@ -106,7 +106,7 @@ if __name__ == "__main__":
     args.jdelim = args.delimiter if args.delimiter != None else ' '
     if args.numerical:
         # Pattern to pull out integers which represent columns
-        pattern = re.compile("([pcn]\[-?\d+\])")
+        pattern = re.compile("([pcn]\[\s*-?\d+\s*\])")
         args.expression = pattern.sub(r'findNumber(\1)', args.expression)
     
 
