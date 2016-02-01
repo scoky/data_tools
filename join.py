@@ -3,14 +3,20 @@
 import os
 import sys
 import argparse
-import traceback
 from collections import defaultdict
+
+class match(object):
+    def __init__(self):
+        self.values = defaultdict(list)
+        
+    def add(self, i, line):
+        self.values[i].append(line)
 
 if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Join files on column(s) to first file')
-    parser.add_argument('infiles', nargs='*', type=argparse.FileType('r'), default=[sys.stdin])
+                                     description='Join files on column(s)')
+    parser.add_argument('infiles', nargs='*', default=[sys.stdin])
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-c', '--columns', nargs='+', default=['0'], help='use + to specify multiple columns per file')
     parser.add_argument('-d', '--delimiter', default=None)
@@ -23,7 +29,7 @@ if __name__ == "__main__":
         exit()
     cols = []
     for c in args.columns:
-        cols.append(map(int, c.split('+')))
+        cols.append(c.split('+'))
     args.columns = cols
         
     jdelim = args.delimiter if args.delimiter != None else ' '

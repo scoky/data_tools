@@ -38,7 +38,7 @@ if __name__ == "__main__":
         for line in infile:
             line = line.rstrip()
             chunk = line.split(args.delimiter)[col]
-            
+
             found = False
             for m in merge[chunk]:
                 if i not in m.srcs:

@@ -1,20 +1,18 @@
 #!/usr/bin/python
 
-import logging
-import argparse
-import sys
-import traceback
 import os
 import re
-import socket
+import sys
 import glob
-import datetime
+import string
+import socket
 import struct
-from decimal import Decimal
-from decimal import InvalidOperation
+import logging
+import datetime
+import argparse
+import traceback
+from decimal import Decimal,InvalidOperation
 
-COMMENT = '#'
-HEADER = '#HEADER'
 number_pattern = re.compile("(-?\d+\.?\d*(e[\+|\-]?\d+)?)", re.IGNORECASE)
 ip_pattern = re.compile("(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})")
 
@@ -102,36 +100,117 @@ def fileRange(startFile, endFile):
 
 def openFile(filename, opts):
     return gzip.open(filename, opts+'b') if filename.endswith('.gz') else open(filename, opts)
-    
-class ColumnHandler(object):
-    def __init__(self, delim = None):
-        self.delim = delim
-        self.names = {}
-        self.index = 0
 
-    def readHeader(self, line):
-        if line[0] == COMMENT and line.startswith(HEADER):
-            colNames = line.split(delim)[1:]
-            for i,n in enumerate(colNames):
-                self.names[n] = i
-                self.index = max(self.index, i+1)
+class Header:
+    PREFIX = '#HEADER '
 
-    def setColumn(self, colName, index):
-        # Fill in holes
-        while self.index > index:
-            self.names[str(self.index)] = self.index
-            self.index += 1
-        self.names[colName] = index
+    def __init__(self, line = ''):
+        self.columns = line.strip().split()[1:]
+        
+    def __len__(self):
+        return len(self.columns)
+        
+    def setCol(self, colName, index):
+        while len(self.columns) <= index:
+            self.columns.append(str(len(self.columns)))
+        self.columns[index] = colName
+        
+    def addCol(self, colName):
+        col = colName
+        i = 1
+        while col in self.columns:
+            col = colName+str(i)
+            i += 1
+        self.columns.append(col)
+        return len(self.columns) - 1
 
-    def outputHeader(self, outfile):
-        cols = sorted(self.names.iteritems(), key = lambda x: x[1])
-        outfile.write(self.delim.join(c[0] for c in cols) + '\n')
+    def addCols(self, colNames):
+        return [self.addCol(colName) for colName in colNames]
+        
+    def extend(self, header):
+        self.addCols(header.columns)
 
-    def convert(self, colNames):
-        return [self.names[c] if c in self.names else int(c) for c in colNames]
+    def value(self):
+        return Header.PREFIX+' '.join(self.columns)+'\n'
+
+    def index(self, colName):
+        if colName is None:
+            return colName
+        elif colName in self.columns:
+            return self.columns.index(colName)
+        else:
+            try:
+                return int(colName)
+            except ValueError as e:
+                raise ValueError('Invalid column specified', e)
+
+    def indexes(self, colNames):
+        return [self.index(colName) for colName in colNames]
+
+    def name(self, index):
+        try:
+            return self.columns[int(index)]
+        except ValueError:
+            return str(index)
+        except IndexError:
+            return str(index)
+
+    def names(self, indexes):
+        return [self.name(index) for index in indexes]
+
+    def copy(self):
+        return Header(self.value())
+        
+class FileReader:
+    def __init__(self, inputStream):
+        if type(inputStream) == str:
+            self.inputStream = openFile(inputStream, 'r')
+        elif type(inputStream) == file:
+            self.inputStream = inputStream
+        else:
+            raise IOException('Unknown input stream type: %s' % type(inputStream))
+        self.next = self._next_header
+        self.header = None
+
+    def Header(self):
+        if not self.header:
+            self._readHeader()
+        return self.header
+
+    def _readHeader(self):
+        try:
+            self.preamble = self.inputStream.next()
+            if self.preamble.startswith(Header.PREFIX): # Found a header
+                self.header = Header(self.preamble)
+                self.preamble = None
+                self.next = self._next_data
+            else:
+                self.next = self._next_preamble
+                self.header = Header()
+        except StopIteration:
+            self.next = self._next_data
+            self.header = Header()
+        
+    def __iter__(self):
+        return self
+
+    def _next_preamble(self):
+        preamble = self.preamble
+        self.preamble = None
+        self.next = self._next_data
+        return preamble
+        
+    def _next_data(self):
+        return self.inputStream.next()
+        
+    def _next_header(self):
+        self._readHeader()
+        return self.next()
+        
+    def close(self):
+        self.inputStream.close()
 
 if __name__ == "__main__":
-    # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
                                      description='Parse input base upon available functions')
     parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
@@ -140,22 +219,8 @@ if __name__ == "__main__":
     parser.add_argument('-a', '--append', action='store_true', default=False, help='append result to columns')
     parser.add_argument('-f', '--function', choices=['IPtoString', 'IPfromString', 'MACtoString', 'MACfromString', 'findNumber', 'findIPAddress'], default='findNumber')
     parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-q', '--quiet', action='store_true', default=False, help='only print errors')
-    parser.add_argument('-v', '--verbose', action='store_true', default=False, help='print debug info. --quiet wins if both are present')
     args = parser.parse_args()
     args.function = getattr(sys.modules[__name__], args.function)
-
-    # set up logging
-    if args.quiet:
-        level = logging.WARNING
-    elif args.verbose:
-        level = logging.DEBUG
-    else:
-        level = logging.INFO
-    logging.basicConfig(
-        format = "%(levelname) -10s %(asctime)s %(module)s:%(lineno) -7s %(message)s",
-        level = level
-    )
 
     jdelim = args.delimiter if args.delimiter != None else ' '
     for line in args.infile:

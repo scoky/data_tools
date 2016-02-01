@@ -4,11 +4,9 @@ import os
 import re
 import sys
 import argparse
-import traceback
-import math
 from decimal import Decimal
-from input_handling import findNumber
-from group import Group,UnsortedInputGrouper
+from input_handling import findNumber,FileReader,Header
+from group import Group,run_grouping
 
 class Compute3Group(Group):
     def __init__(self, tup):
@@ -95,18 +93,41 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
                                      description='Compute maximum of column(s)')
     parser.add_argument('expression', help='equation to call. use c[i] to indicate column i, p[i] to indicate column i of the previous row, and n[i] to indicate column i of the next row.')
-    parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
+    parser.add_argument('infile', nargs='?', default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
+    parser.add_argument('-g', '--group', nargs='+', default=[])
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-n', '--numerical', action='store_true', default=False, help='treat columns values as numbers')
     parser.add_argument('-a', '--append', action='store_true', default=False, help='append result to columns')
+    parser.add_argument('-o', '--ordered', action='store_true', default=False, help='input is sorted by group')
     args = parser.parse_args()
-    
+    args.infile = FileReader(args.infile)
+
+    # Get the header from the input file if there is one
+    args.inheader = args.infile.Header()
+    # Setup output header
+    if args.append:
+        args.outheader = args.inheader.copy()
+    else:
+        args.outheader = Header()
+        args.outheader.addCols(args.inheader.names(args.group))
+    args.outheader.addCol('compute')
+    # Write output header
+    args.outfile.write(args.outheader.value())
+    # Get columns for use in computation
+    args.group = args.inheader.indexes(args.group)
+
     args.jdelim = args.delimiter if args.delimiter != None else ' '
+
+    # Replace column names with indexes from header
+    pattern = re.compile("([pcn]\[([^\]\[]+)\])")
+    for col in set(c for _,c in pattern.findall(args.expression)):
+        ind = args.inheader.index(col)
+        p = re.compile("\[%s\]" % col)
+        args.expression = p.sub("[%d]" % ind, args.expression)
+    # Interpret as numbers
     if args.numerical:
         # Pattern to pull out integers which represent columns
-        pattern = re.compile("([pcn]\[\s*-?\d+\s*\])")
         args.expression = pattern.sub(r'findNumber(\1)', args.expression)
     
 
@@ -124,5 +145,4 @@ if __name__ == "__main__":
         args.expression = eval('lambda c: '+ args.expression)
         groupClass = Compute1Group
 
-    grouper = UnsortedInputGrouper(args.infile, groupClass, args.group, args.delimiter)
-    grouper.group()
+    run_grouping(args.infile, groupClass, args.group, args.delimiter, args.ordered)
