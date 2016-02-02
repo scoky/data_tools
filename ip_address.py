@@ -3,8 +3,7 @@
 import os
 import sys
 import argparse
-import traceback
-from input_handling import findIPAddress
+from input_handling import findIPAddress,FileReader,Header
 
 class IPRange(object):
     def __init__(self, start, end=None, mask=None):
@@ -26,15 +25,30 @@ class IPRange(object):
 if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Parse input base upon available functions')
-    parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
+                                     description='Parse input based upon available functions')
+    parser.add_argument('infile', nargs='?', default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
+    parser.add_argument('-c', '--columns', nargs='+', default=[0])
     parser.add_argument('-a', '--append', action='store_true', default=False, help='append result to columns')
     parser.add_argument('-f', '--function', choices=['mask'], default='mask')
     parser.add_argument('-s', '--slash', type=int, default=24)
     parser.add_argument('-d', '--delimiter', default=None)
     args = parser.parse_args()
+    args.infile = FileReader(args.infile)
+
+    # Get the header from the input file if there is one
+    args.inheader = args.infile.Header()
+    # Setup output header
+    if args.append:
+        args.outheader = args.inheader.copy()
+    else:
+        args.outheader = Header()
+    for col in args.columns:
+        args.outheader.addCol(args.inheader.name(col) + '_' + args.function)
+    # Write output header
+    args.outfile.write(args.outheader.value())
+    # Get columns for use in computation
+    args.columns = args.inheader.indexes(args.columns)
     args.function = getattr(IPRange, args.function)
 
     jdelim = args.delimiter if args.delimiter != None else ' '

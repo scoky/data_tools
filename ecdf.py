@@ -2,12 +2,10 @@
 
 import os
 import sys
-import logging
 import argparse
-import traceback
 import operator
 from decimal import Decimal,getcontext
-from input_handling import findNumber,parseLines
+from input_handling import findNumber,FileReader,Header
 from collections import defaultdict
 
 def ecdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=None, delimiter=None, padding=[]):
@@ -77,15 +75,27 @@ if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
                                      description='Compute ecdf')
-    parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
+    parser.add_argument('infile', nargs='?', default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--column', type=int, default=0, help='column contain values')
-    parser.add_argument('-b', '--bin', type=int, default=None, help='column containing bin counts')
+    parser.add_argument('-c', '--column', default=0, help='column contain values')
+    parser.add_argument('-b', '--bin', default=None, help='column containing bin counts')
     parser.add_argument('-q', '--quantize', type=Decimal, default=None, help='fixed exponent')
     parser.add_argument('-s', '--significantDigits', type=int, default=None, help='number of significant digits')
     parser.add_argument('-d', '--delimiter', default=None, help='delimiter between columns in file')
     parser.add_argument('-p', '--padding', nargs='+', type=Decimal, default=[], help='additional binned values to add. format: "value count"')
     args = parser.parse_args()
+
+    args.infile = FileReader(args.infile)
+    # Get the header from the input file if there is one
+    args.inheader = args.infile.Header()
+    # Setup output header
+    args.outheader = Header()
+    args.outheader.addCols(['x', 'y'])
+    # Write output header
+    args.outfile.write(args.outheader.value())
+    # Get columns for use in computation
+    args.column = args.inheader.index(args.column)
+    args.bin = args.inheader.index(args.bin)
 
     ecdfFile(args.infile, args.outfile, column=args.column, quant=args.quantize, sigDigits=args.significantDigits,\
        binColumn=args.bin, delimiter=args.delimiter, padding=args.padding)
