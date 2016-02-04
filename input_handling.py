@@ -109,6 +109,9 @@ class Header:
         
     def __len__(self):
         return len(self.columns)
+
+    def __iter__(self):
+        return self.columns.__iter__()
         
     def setCol(self, colName, index):
         while len(self.columns) <= index:
@@ -209,6 +212,12 @@ class FileReader:
         
     def close(self):
         self.inputStream.close()
+        
+    def readline(self):
+        try:
+            return self.next()
+        except StopIteration:
+            return ''
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\

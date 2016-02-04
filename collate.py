@@ -3,8 +3,7 @@
 import os
 import sys
 import argparse
-import traceback
-from input_handling import findNumber
+from input_handling import findNumber,FileReader,Header
 
 class CollaterFile(object):
     def __init__(self, fstream, column, key, line, callback):
@@ -58,10 +57,10 @@ if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
                                      description='Collate multiple files')
-    parser.add_argument('infiles', nargs='+', type=argparse.FileType('r'), default=[sys.stdin])
+    parser.add_argument('infiles', nargs='+', default=[sys.stdin])
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-n', '--numerical', default=False, action='store_true')
-    parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
+    parser.add_argument('-c', '--columns', nargs='+', default=[0])
     parser.add_argument('-d', '--delimiter', default=None)
     args = parser.parse_args()
     if len(args.columns) == 1:
@@ -70,8 +69,16 @@ if __name__ == "__main__":
         sys.stderr.write('InputError: invalid columns argument\n')
         exit()
 
+    args.inheader = None
     collater = Collater(args.numerical)
     for col,infile in zip(args.columns, args.infiles):
+        infile = FileReader(infile)
+        if not args.inheader or len(args.inheader) == 0:
+            args.inheader = infile.Header()
+        col = infile.Header().index(col)
         collater.addFile(infile, printLine, col)
+        
+    if args.inheader:
+        args.outfile.write(args.inheader.value())
     collater.run()
 

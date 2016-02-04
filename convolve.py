@@ -3,9 +3,8 @@
 import os
 import sys
 import argparse
-import traceback
-from input_handling import findNumber
-from group import Group,UnsortedInputGrouper
+from input_handling import findNumber,FileReader,Header
+from group import Group,run_grouping
 from decimal import Decimal
 from numpy import convolve as np_convolve
 
@@ -30,15 +29,33 @@ if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
                                      description='Compute maximum of column(s)')
-    parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
+    parser.add_argument('infile', nargs='?', default=sys.stdin)
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--column', type=int, default=0)
-    parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
+    parser.add_argument('-c', '--column', default=0)
+    parser.add_argument('-g', '--group', nargs='+', default=[])
     parser.add_argument('-d', '--delimiter', default=None)
     parser.add_argument('-m', '--mode', default='full', choices=['full', 'same', 'valid'])
     parser.add_argument('-f', '--function', default=[Decimal('0.333'), Decimal('0.334'), Decimal('0.333')], type=Decimal, nargs='+', help='append result to columns')
+    parser.add_argument('-a', '--append', action='store_true', default=False, help='append result to columns')
+    parser.add_argument('-o', '--ordered', action='store_true', default=False, help='input is sorted by group')
     args = parser.parse_args()
-    args.jdelim = args.delimiter if args.delimiter != None else ' '
+    args.infile = FileReader(args.infile)
+
+    # Get the header from the input file if there is one
+    args.inheader = args.infile.Header()
+    # Setup output header
+    if args.append:
+        args.outheader = args.inheader.copy()
+    else:
+        args.outheader = Header()
+        args.outheader.addCols(args.inheader.names(args.group))
+    args.outheader.addCol(args.inheader.name(args.column)+'_convolve')
+    # Write output header
+    args.outfile.write(args.outheader.value())
+    # Get columns for use in computation
+    args.column = args.inheader.index(args.column)
+    args.group = args.inheader.indexes(args.group)
     
-    grouper = UnsortedInputGrouper(args.infile, ConvolveGroup, args.group, args.delimiter)
-    grouper.group()
+    args.jdelim = args.delimiter if args.delimiter != None else ' '
+    run_grouping(args.infile, ConvolveGroup, args.group, args.delimiter, args.ordered)
+
