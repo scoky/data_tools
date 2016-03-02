@@ -4,10 +4,9 @@ import os
 import sys
 import math
 import argparse
-import traceback
 from collections import defaultdict
-from input_handling import findNumber
-from group import Group,UnsortedInputGrouper
+from input_handling import findNumber,FileReader,Header
+from group import Group,run_grouping
 from multiprocessing import Pool
 
 def metric_hamming(s1, s2, state=None):
@@ -123,13 +122,13 @@ if __name__ == "__main__":
     # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
                                      description='Compute similarity/distance between groups')
-    parser.add_argument('infiles', nargs='*', type=argparse.FileType('r'), default=[sys.stdin])
+    parser.add_argument('infiles', nargs='*', type=FileReader, default=[FileReader(sys.stdin)])
     parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     parser.add_argument('-m', '--metric', default='cosine', choices=['cosine', 'jaccard', 'hamming', 'levenshtein', 'angular', 'euclidean'])
-    parser.add_argument('-k', '--key', type=int, default=0)
-    parser.add_argument('-v', '--value', type=int, default=1)
-    parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
-    parser.add_argument('-d', '--delimiter', default=None)
+    parser.add_argument('-k', '--key', default = 0)
+    parser.add_argument('-v', '--value', default = 1)
+    parser.add_argument('-g', '--group', nargs = '+', default = [])
+    parser.add_argument('-d', '--delimiter', default = None)
     parser.add_argument('-u', '--multithreaded', action='store_true', default=False)
     parser.add_argument('-t', '--threads', default=None, type=int, help='number of threads to user')
     parser.add_argument('-c', '--chunk', default=20, help='chunk size to assign to each thread')
@@ -137,10 +136,20 @@ if __name__ == "__main__":
 
     args.groups = []
     args.jdelim = args.delimiter if args.delimiter != None else ' '
-
     for infile in args.infiles:
-        grouper = UnsortedInputGrouper(infile, DistanceGroup, args.group, args.delimiter)
-        grouper.group()
+        k,v,g = args.key,args.value,args.group
+        inheader = infile.Header()
+        args.key = inheader.index(args.key)
+        args.value = inheader.index(args.value)
+        args.group = inheader.indexes(args.group)
+        run_grouping(infile, DistanceGroup, args.group, args.delimiter, False)
+        args.key,args.value,args.group = k,v,g
+
+    outheader = Header()
+    outheader.addCols(inheader.names(args.group))
+    outheader.addCols(inheader.names(args.group))
+    outheader.addCol('distance')
+    args.outfile.write(outheader.value())
 
     if args.multithreaded:
         args.metricf = getattr(sys.modules[__name__], 'metric_'+args.metric+'_m')

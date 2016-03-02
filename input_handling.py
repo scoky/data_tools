@@ -171,7 +171,8 @@ class FileReader:
         elif type(inputStream) == file:
             self.inputStream = inputStream
         else:
-            raise IOException('Unknown input stream type: %s' % type(inputStream))
+            print inputStream
+            raise IOError('Unknown input stream type: %s' % type(inputStream))
         self.next = self._next_header
         self.header = None
 

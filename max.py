@@ -3,7 +3,6 @@
 import os
 import sys
 import argparse
-import traceback
 from input_handling import findNumber,FileReader,Header
 from group import Group,run_grouping
 from decimal import Decimal
