@@ -220,6 +220,13 @@ class FileReader:
         except StopIteration:
             return ''
 
+
+    def __enter__(self):
+        return self
+        
+    def __exit__(self, type, value, traceback):
+        self.close()
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
                                      description='Parse input base upon available functions')
