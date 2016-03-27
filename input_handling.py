@@ -11,6 +11,7 @@ import logging
 import datetime
 import argparse
 import traceback
+from copy import copy
 from decimal import Decimal,InvalidOperation
 
 number_pattern = re.compile("(-?\d+\.?\d*(e[\+|\-]?\d+)?)", re.IGNORECASE)
@@ -102,10 +103,9 @@ def openFile(filename, opts):
     return gzip.open(filename, opts+'b') if filename.endswith('.gz') else open(filename, opts)
 
 class Header:
-    PREFIX = '#HEADER '
-
-    def __init__(self, line = ''):
-        self.columns = line.strip().split()[1:]
+    def __init__(self, columns = [], exists = True):
+        self.columns = columns
+        self.exists = exists
         
     def __len__(self):
         return len(self.columns)
@@ -133,8 +133,11 @@ class Header:
     def extend(self, header):
         self.addCols(header.columns)
 
-    def value(self):
-        return Header.PREFIX+' '.join(self.columns)+'\n'
+    def value(self, delimiter):
+        if self.exists:
+            return delimiter.join(self.columns)+'\n'
+        else:
+            return ''
 
     def index(self, colName):
         if colName is None:
@@ -162,8 +165,8 @@ class Header:
         return [self.name(index) for index in indexes]
 
     def copy(self):
-        return Header(self.value())
-        
+        return Header(copy(self.columns), self.exists)
+
 class FileReader:
     def __init__(self, inputStream, header = False, delimiter = None):
         if type(inputStream) == str:
@@ -173,48 +176,28 @@ class FileReader:
         else:
             raise IOError('Unknown input stream type: %s' % type(inputStream))
 
-        self.delimiter = delimiter if delimiter else os.environ.get('TOOLBOX_DELIMITER', None)
+        self.delimiter = delimiter if delimiter else os.environ.get('TOOLBOX_DELIMITER', ' ')
         header = header or os.environ.get('TOOLBOX_HEADER', '').lower() == 'true'
         if header:
-            self.next = self._next_header
+            self.header = self._readHeader()
         else:
-            self.next = self._next_data
-        self.header = None
+            self.header = Header([], exists = False)
+
+    def Delimiter(self):
+        return self.delimiter
 
     def Header(self):
-        if not self.header:
-            self._readHeader()
         return self.header
 
     def _readHeader(self):
-        try:
-            self.preamble = self.inputStream.next()
-            if self.preamble.startswith(Header.PREFIX): # Found a header
-                self.header = Header(self.preamble)
-                self.preamble = None
-                self.next = self._next_data
-            else:
-                self.next = self._next_preamble
-                self.header = Header()
-        except StopIteration:
-            self.next = self._next_data
-            self.header = Header()
+        preamble = self.inputStream.next()
+        return Header(preamble.strip().split(self.delimiter))
         
     def __iter__(self):
         return self
-
-    def _next_preamble(self):
-        preamble = self.preamble
-        self.preamble = None
-        self.next = self._next_data
-        return preamble
         
-    def _next_data(self):
-        return self.inputStream.next()
-        
-    def _next_header(self):
-        self._readHeader()
-        return self.next()
+    def next(self):
+        return self.inputStream.next().strip().split(self.delimiter)
 
     def readline(self):
         try:

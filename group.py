@@ -15,19 +15,17 @@ class Group(object):
         pass
 
 class SortedInputGrouper(object):
-    def __init__(self, infile, group_cols=[0], delimiter=None):
+    def __init__(self, infile, group_cols=[0]):
         self.infile = infile
         self.group_cols = group_cols
-        self.delimiter = delimiter
         self.tup = None
         self.chunks = None
 
     def group(self):
-        line = self.infile.next()
-        if not line:
+        try:
+            self.chunks = self.infile.next()
+        except StopIteration:
             return
-        
-        self.chunks = line.rstrip().split(self.delimiter)
         self.tup = [self.chunks[g] for g in self.group_cols]
         while self.tup != None:
             yield self._gather()
@@ -36,8 +34,8 @@ class SortedInputGrouper(object):
         # Yield the capture chunks
         yield self.chunks
         # Look for more matching the tuple
-        for line in self.infile:
-            self.chunks = line.rstrip().split(self.delimiter)
+        for chunks in self.infile:
+            self.chunks = chunks
             ntup = [self.chunks[g] for g in self.group_cols]
             if ntup == self.tup:
                 yield self.chunks
@@ -47,36 +45,32 @@ class SortedInputGrouper(object):
         self.tup = None
     
 class UnsortedInputGrouper(object):
-    def __init__(self, infile, group_cls=Group, group_cols=[0], delimiter=None):
+    def __init__(self, infile, group_cls=Group, group_cols=[0]):
         self.infile = infile
         self.group_cols = group_cols
-        self.delimiter = delimiter
         self.dict = {}
         self.group_cls = group_cls
 
     def group(self):
-        jdelim = ' ' if not self.delimiter else self.delimiter
-        keys = []
-        for line in self.infile:
-            chunks = line.rstrip().split(self.delimiter)
+        for chunks in self.infile:
             tup = [chunks[g] for g in self.group_cols]
-            key = jdelim.join(tup)
+            key = tuple(tup)
             if key not in self.dict:
                 self.dict[key] = self.group_cls(tup)
-                keys.append(key)
             self.dict[key].add(chunks)
-        for key in keys:
-            self.dict[key].done()
+        for value in self.dict.itervalues():
+            value.done()
             
-def run_grouping(infile, group_cls=Group, group_cols=[0], delimiter=None, ordered=False):
+def run_grouping(infile, group_cls=Group, group_cols=[0], ordered=False):
+    group_cols = infile.Header().indexes(group_cols)
     if ordered:
-        grouper = SortedInputGrouper(infile, group_cols, delimiter)
+        grouper = SortedInputGrouper(infile, group_cols)
         for chunk in grouper.group():
             g = group_cls(grouper.tup)
             for item in chunk:
                 g.add(item)
             g.done()
     else:
-        UnsortedInputGrouper(infile, group_cls, group_cols, delimiter).group()
+        UnsortedInputGrouper(infile, group_cls, group_cols).group()
 
 
