@@ -91,10 +91,10 @@ def fileRange(startFile, endFile):
     if startDir == '':
         files = glob.iglob('*');
     else:
-        files = glob.iglob(startDir + '/*');
+        files = glob.iglob(os.path.expanduser(startDir) + '/*');
     ret = []
     for fn in files:
-        if os.path.basename(fn) >= startFile and os.path.basename(fn) <= endFile:
+        if startFile <= os.path.basename(fn) <= endFile:
             ret.append(fn)
     return sorted(ret)
 
@@ -154,9 +154,9 @@ class Header:
         try:
             return self.columns[int(index)]
         except ValueError:
-            return str(index)
+            return 'col_'+str(index)
         except IndexError:
-            return str(index)
+            return 'col_'+str(index)
 
     def names(self, indexes):
         return [self.name(index) for index in indexes]
@@ -165,15 +165,20 @@ class Header:
         return Header(self.value())
         
 class FileReader:
-    def __init__(self, inputStream):
+    def __init__(self, inputStream, header = False, delimiter = None):
         if type(inputStream) == str:
             self.inputStream = openFile(inputStream, 'r')
         elif type(inputStream) == file:
             self.inputStream = inputStream
         else:
-            print inputStream
             raise IOError('Unknown input stream type: %s' % type(inputStream))
-        self.next = self._next_header
+
+        self.delimiter = delimiter if delimiter else os.environ.get('TOOLBOX_DELIMITER', None)
+        header = header or os.environ.get('TOOLBOX_HEADER', '').lower() == 'true'
+        if header:
+            self.next = self._next_header
+        else:
+            self.next = self._next_data
         self.header = None
 
     def Header(self):
@@ -210,16 +215,15 @@ class FileReader:
     def _next_header(self):
         self._readHeader()
         return self.next()
-        
-    def close(self):
-        self.inputStream.close()
-        
+
     def readline(self):
         try:
             return self.next()
         except StopIteration:
             return ''
 
+    def close(self):
+        self.inputStream.close()
 
     def __enter__(self):
         return self
