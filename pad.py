@@ -3,7 +3,7 @@
 import os
 import sys
 import argparse
-from input_handling import FileReader,FileWriter,ParameterParser
+from input_handling import FileReader,ParameterParser
 from group import Group,run_grouping
 
 class PadGroup(Group):
@@ -22,7 +22,7 @@ class PadGroup(Group):
                 
 
 if __name__ == "__main__":
-    pp = ParameterParser('Generate additional rows to pad input', append = False, labels = False)
+    pp = ParameterParser('Generate additional rows to pad input', append = False, labels = False, ordered = False)
     pp.parser.add_argument('-e', '--elements', help='File containing list elements, one per line.')
     pp.parser.add_argument('-p', '--pad', nargs='+', default=['0'])
     args = pp.parseArgs()

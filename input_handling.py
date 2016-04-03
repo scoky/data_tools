@@ -199,7 +199,7 @@ class FileWriter:
         self.write(chunks)
 
     def _write(self, chunks):
-        self._outputStream.write(self._delimiter.join(chunks)+'\n')
+        self._outputStream.write(self._delimiter.join(map(str, chunks))+'\n')
 
 class FileReader:
     def __init__(self, inputStream, header = False, delimiter = None):
@@ -254,7 +254,7 @@ class FileReader:
         self.close()
 
 class ParameterParser:
-    def __init__(self, descrip, group = True, columns = True, append = True, labels = None):
+    def __init__(self, descrip, group = True, columns = True, append = True, labels = None, ordered = True):
         self.parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=descrip)
         self.parser.add_argument('infile', nargs='?', default=sys.stdin)
         self.parser.add_argument('outfile', nargs='?', default=sys.stdout)
@@ -266,21 +266,24 @@ class ParameterParser:
             self.parser.add_argument('-l', '--labels', nargs='+', default=labels, help='labels for the column(s)')
         if append:
             self.parser.add_argument('--append', action='store_true', default=False, help='keep original columns in output')
+        if ordered:
+            self.parser.add_argument('--ordered', action='store_true', default=False, help='input is sorted by group')
         self.parser.add_argument('--delimiter', default=None)
         self.parser.add_argument('--header', action='store_true', default=False)
 
     def parseArgs(self):
-        return self.parser.parse_args()
-        
-    def getArgs(self, args):
+        args = self.parser.parse_args()
         args.infile = FileReader(args.infile, args.header, args.delimiter)
-        args.outfile = FileWriter(args.outfile, args.infile, args)
         if hasattr(args, 'group'):
             args.group_names = args.infile.header.names(args.group)
             args.group = args.infile.header.indexes(args.group)
         if hasattr(args, 'columns'):
             args.columns_names = args.infile.header.names(args.columns)
             args.columns = args.infile.header.indexes(args.columns)
+        return args
+        
+    def getArgs(self, args):
+        args.outfile = FileWriter(args.outfile, args.infile, args)
         return args
 
 if __name__ == "__main__":

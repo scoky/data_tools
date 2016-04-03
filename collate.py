@@ -54,7 +54,6 @@ def printLine(line):
     args.outfile.write(line)
 
 if __name__ == "__main__":
-    # set up command line args
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
                                      description='Collate multiple files')
     parser.add_argument('infiles', nargs='+', default=[sys.stdin])
