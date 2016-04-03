@@ -1,12 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
 import argparse
-import traceback
-from input_handling import findNumber
-from group import Group,UnsortedInputGrouper
-from decimal import Decimal
+from input_handling import ParameterParser
+from group import Group,run_grouping
 
 class OccurGroup(Group):
     def __init__(self, tup):
@@ -18,7 +16,7 @@ class OccurGroup(Group):
         self.last = None
 
     def addFirst(self, chunks):
-        args.outfile.write(args.jdelim.join(chunks) + '\n')
+        args.outfile.write(chunks)
         self.add = self.addNothing
         
     def addNothing(self, chunks):
@@ -26,19 +24,13 @@ class OccurGroup(Group):
 
     def done(self):
         if self.last is not None and 'last' in args.order:
-            args.outfile.write(args.jdelim.join(self.last) + '\n')
+            args.outfile.write(self.last)
 
 if __name__ == "__main__":
-    # set up command line args
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Output the first/last occurance of a group')
-    parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
-    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
-    parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-o', '--order', nargs='+', default=['first'], choices=['first', 'last'])
-    args = parser.parse_args()
+    pp = ParameterParser('Output the first/last occurance of a group', columns = False, append = False, ordered = False)
+    pp.parser.add_argument('-o', '--order', nargs='+', default=['first'], choices=['first', 'last'])
+    args = pp.parseArgs()
+    args.append = True
+    args = pp.getArgs(args)
 
-    args.jdelim = args.delimiter if args.delimiter != None else ' '
-    grouper = UnsortedInputGrouper(args.infile, OccurGroup, args.group, args.delimiter)
-    grouper.group()
+    run_grouping(args.infile, OccurGroup, args.group, False)

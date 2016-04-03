@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
@@ -41,14 +41,13 @@ class KMaxGroup(Group):
             args.outfile.write(self.tup + [v])
 
 if __name__ == "__main__":
-    pp = ParameterParser('Compute maximum of column(s)', labels = [None])
-    pp.parser.add_argument('-k', '--k', type = int, default = 1)
+    pp = ParameterParser('Compute maximum of column', columns = 1, labels = [None])
+    pp.parser.add_argument('-k', '--k', type = int, default = 1, help = 'find the k maximum values')
     args = pp.parseArgs()
-    if len(args.columns) != 1:
-        raise Exception('Must specify 1 column!')
-    args.column = args.columns[0]
     if not any(args.labels):
-        args.labels = [args.columns_names[0] + '_max']
+        args.labels = [args.column_name + '_max']
+    if args.append:
+        args.labels = []
     args = pp.getArgs(args)
 
     if args.k > 1:

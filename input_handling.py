@@ -254,13 +254,15 @@ class FileReader:
         self.close()
 
 class ParameterParser:
-    def __init__(self, descrip, group = True, columns = True, append = True, labels = None, ordered = True):
+    def __init__(self, descrip, group = True, columns = 1, append = True, labels = None, ordered = True):
         self.parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=descrip)
         self.parser.add_argument('infile', nargs='?', default=sys.stdin)
         self.parser.add_argument('outfile', nargs='?', default=sys.stdout)
         if group:
             self.parser.add_argument('-g', '--group', nargs='+', default=[], help='column(s) to group input by')
-        if columns:
+        if columns == 1:
+            self.parser.add_argument('-c', '--column', default=0, help='column to manipulate')
+        elif columns != 0:
             self.parser.add_argument('-c', '--columns', nargs='+', default=[0], help='column(s) to manipulate')
         if labels:
             self.parser.add_argument('-l', '--labels', nargs='+', default=labels, help='labels for the column(s)')
@@ -280,6 +282,9 @@ class ParameterParser:
         if hasattr(args, 'columns'):
             args.columns_names = args.infile.header.names(args.columns)
             args.columns = args.infile.header.indexes(args.columns)
+        if hasattr(args, 'column'):
+            args.column_name = args.infile.header.name(args.column)
+            args.column = args.infile.header.index(args.column)
         return args
         
     def getArgs(self, args):

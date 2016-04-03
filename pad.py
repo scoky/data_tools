@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
@@ -22,7 +22,7 @@ class PadGroup(Group):
                 
 
 if __name__ == "__main__":
-    pp = ParameterParser('Generate additional rows to pad input', append = False, labels = False, ordered = False)
+    pp = ParameterParser('Generate additional rows to pad input', columns = '*', append = False, labels = False, ordered = False)
     pp.parser.add_argument('-e', '--elements', help='File containing list elements, one per line.')
     pp.parser.add_argument('-p', '--pad', nargs='+', default=['0'])
     args = pp.parseArgs()

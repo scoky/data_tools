@@ -3,7 +3,7 @@
 import os
 import sys
 import argparse
-import traceback
+from input_handling import ParameterParser
 from group import Group,run_grouping
 
 class PairUniqueGroup(Group):
@@ -12,16 +12,28 @@ class PairUniqueGroup(Group):
         self.items = set()
 
     def add(self, chunks):
-        val = args.jdelim.join([chunks[c] for c in args.columns])
+        val = tuple([chunks[c] for c in args.columns])
         if val not in self.items:
             for item in self.items:
-                if len(self.tup) > 0:
-                    args.outfile.write(args.jdelim.join(self.tup) + args.jdelim)
                 if val <= item:
-                    args.outfile.write(val + args.jdelim + item + '\n')
+                    args.outfile.write(self.tup + list(val) + list(item))
                 else:
-                    args.outfile.write(item + args.jdelim + val + '\n')
+                    args.outfile.write(self.tup + list(item) + list(val))
             self.items.add(val)
+
+    def done(self):
+        pass
+
+class PairAllGroup(Group):
+    def __init__(self, tup):
+        super(PairAllGroup, self).__init__(tup)
+        self.items = []
+
+    def add(self, chunks):
+        val = [chunks[c] for c in args.columns]
+        for item in self.items:
+            args.outfile.write(self.tup + val + item)
+        self.items.append(val)
 
     def done(self):
         pass
@@ -30,39 +42,46 @@ class PairFirstGroup(Group):
     def __init__(self, tup):
         super(PairFirstGroup, self).__init__(tup)
         self.first = None
-        if len(self.tup) > 0:
-            self.prefix = args.jdelim.join(self.tup) + args.jdelim
-        else:
-            self.prefix = ''
 
     def add(self, chunks):
-        val = args.jdelim.join([chunks[c] for c in args.columns])
+        val = [chunks[c] for c in args.columns]
         if self.first == None:
             self.first = val
         else:
-            args.outfile.write(self.prefix + self.first + args.jdelim + val + '\n')
+            args.outfile.write(self.tup + self.first + val)
 
     def done(self):
         pass
 
-if __name__ == "__main__":
-    # set up command line args
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Compute all pairs of inputs')
-    parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
-    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--columns', nargs='+', type=int, default=[0])
-    parser.add_argument('-m', '--method', choices=['all', 'unique', 'first', 'last', 'sequence'], default='unique')
-    parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
-    parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-o', '--ordered', action='store_true', default=False, help='input is sorted by group')
-    args = parser.parse_args()
+class PairLastGroup(Group):
+    def __init__(self, tup):
+        super(PairLastGroup, self).__init__(tup)
+        self.items = []
 
-    args.jdelim = args.delimiter if args.delimiter != None else ' '
+    def add(self, chunks):
+        self.items.append([chunks[c] for c in args.columns])
+
+    def done(self):
+        last = self.items[-1]
+        for val in self.items[:-1]:
+            args.outfile.write(self.tup + last + val)
+
+if __name__ == "__main__":
+    pp = ParameterParser('Compute all pairs of inputs', columns = '*', labels = [None], append = False)
+    pp.parser.add_argument('-m', '--method', choices=['all', 'unique', 'first', 'last', 'sequence'], default='unique')
+    args = pp.parseArgs()
+    if not any(args.labels):
+        args.labels = args.columns_names + [col + '_pair' for col in args.columns_names]
+    args = pp.getArgs(args)
+
     if args.method == 'unique':
         cls = PairUniqueGroup
     elif args.method == 'first':
         cls = PairFirstGroup
+    elif args.method == 'all':
+        cls = PairAllGroup
+    elif args.method == 'last':
+        cls = PairLastGroup
     else:
         raise Exception('Not Implemented!')
-    run_grouping(args.infile, cls, args.group, args.delimiter, args.ordered)
+    run_grouping(args.infile, cls, args.group, args.ordered)

@@ -5,7 +5,7 @@ import sys
 import argparse
 import traceback
 from collections import deque
-from input_handling import findNumber,FileReader,Header
+from input_handling import ParameterParser,findNumber
 from group import Group,run_grouping
 from heapq import heappush, heappop
         
@@ -14,10 +14,6 @@ class KNearGroup(Group):
         super(KNearGroup, self).__init__(tup)
         self.past = deque()
         self.future = deque()
-        if len(self.tup) > 0:
-            self.prefix = args.jdelim.join(self.tup) + args.jdelim
-        else:
-            self.prefix = ''
 
     def add(self, chunks):
         val = findNumber(chunks[args.column])
@@ -28,7 +24,7 @@ class KNearGroup(Group):
             nearest = [abs(x - current) for x in self.past] + [abs(x - current) for x in self.future]
             nearest = sorted(nearest)[:args.k]
             
-            args.outfile.write(self.prefix + str(current) + args.jdelim + args.jdelim.join(map(str, nearest)) + '\n')
+            args.outfile.write(self.tup + [current] + nearest)
 
             self.past.append(current)
             while len(self.past) > args.k:
@@ -40,38 +36,17 @@ class KNearGroup(Group):
             nearest = [abs(x - current) for x in self.past] + [abs(x - current) for x in self.future]
             nearest = sorted(nearest)[:args.k]
 
-            args.outfile.write(self.prefix + str(current) + args.jdelim + args.jdelim.join(map(str, nearest)) + '\n')
+            args.outfile.write(self.tup + [current] + nearest)
 
             self.past.append(current)
         self.past.clear()
         
 if __name__ == "__main__":
-    # set up command line args
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Compute the k-nearest values')
-    parser.add_argument('infile', nargs='?', default=sys.stdin)
-    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--column', default=0)
-    parser.add_argument('-k', '--k', type=int, default=1)
-    parser.add_argument('-g', '--group', nargs='+', default=[])
-    parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-o', '--ordered', action='store_true', default=False, help='input is sorted by group')
-    args = parser.parse_args()
-    args.infile = FileReader(args.infile)
+    pp = ParameterParser('Compute the k-nearest values', columns = 1, labels = [None], append = False)
+    pp.parser.add_argument('-k', '--k', type=int, default=1)
+    args = pp.parseArgs()
+    if not any(args.labels):
+        args.labels = [args.column_name] + ['{0}_k{1}_nearest'.format(args.column_name, k+1) for k in range(args.k)]
+    args = pp.getArgs(args)
 
-    # Get the header from the input file if there is one
-    args.inheader = args.infile.Header()
-    # Setup output header
-    args.outheader = Header()
-    args.outheader.addCols(args.inheader.names(args.group))
-    args.outheader.addCol(args.inheader.name(args.column))
-    for i in range(args.k):
-        args.outheader.addCol(args.inheader.name(args.column)+('_k=%d_nearest' % (i+1)))
-    # Write output header
-    args.outfile.write(args.outheader.value())
-    # Get columns for use in computation
-    args.column = args.inheader.index(args.column)
-    args.group = args.inheader.indexes(args.group)
-
-    args.jdelim = args.delimiter if args.delimiter != None else ' '
-    run_grouping(args.infile, KNearGroup, args.group, args.delimiter, args.ordered)
+    run_grouping(args.infile, KNearGroup, args.group, args.ordered)
