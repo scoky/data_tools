@@ -146,7 +146,7 @@ class Header:
             try:
                 return int(colName)
             except ValueError as e:
-                raise ValueError('Invalid column %s specified' % colName, e)
+                raise ValueError('Invalid column %s specified' % colName)
 
     def indexes(self, colNames):
         return [self.index(colName) for colName in colNames]
@@ -168,20 +168,17 @@ class Header:
 class FileWriter:
     def __init__(self, outputStream, reader, args):
         self._outputStream = openFile(outputStream, 'w')
-        self._delimiter = reader._delimiter if reader._delimiter else ' '
-        if reader.hasHeader:
-            self.write = self._firstwrite
+        self._delimiter = args.delimiter if args.delimiter else os.environ.get('TOOLBOX_DELIMITER', ' ')
+        self.write = self._firstwrite
+        self._header = Header()
+        if reader and reader.hasHeader:
             if hasattr(args, 'append') and args.append:
                 self._header = reader.header.copy()
             else:
-                self._header = Header()
                 if hasattr(args, 'group'):
                     self._header.addCols(reader.header.names(args.group))
             if hasattr(args, 'labels'):
                 self._header.addCols(args.labels)
-        else:
-            self.write = self._write
-            self._header = Header()
             
     @property
     def header(self):
@@ -193,9 +190,10 @@ class FileWriter:
 
     def _firstwrite(self, chunks):
         self.write = self._write
-        self.write(self._header.columns)
-        if len(self._header) != len(chunks):
-            sys.stderr.write('Warning: number of rows in output does not match number of rows in header\n')
+        if self.hasHeader:
+            self.write(self._header.columns)
+            if len(self._header) != len(chunks):
+                sys.stderr.write('Warning: number of rows in output does not match number of rows in header\n')
         self.write(chunks)
 
     def _write(self, chunks):
@@ -254,9 +252,12 @@ class FileReader:
         self.close()
 
 class ParameterParser:
-    def __init__(self, descrip, group = True, columns = 1, append = True, labels = None, ordered = True):
+    def __init__(self, descrip, infiles = 1, group = True, columns = 1, append = True, labels = None, ordered = True):
         self.parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=descrip)
-        self.parser.add_argument('infile', nargs='?', default=sys.stdin)
+        if infiles == 1:
+            self.parser.add_argument('infile', nargs='?', default=sys.stdin)
+        else:
+            self.parser.add_argument('infiles', nargs='+', default=[sys.stdin])
         self.parser.add_argument('outfile', nargs='?', default=sys.stdout)
         if group:
             self.parser.add_argument('-g', '--group', nargs='+', default=[], help='column(s) to group input by')
@@ -275,7 +276,10 @@ class ParameterParser:
 
     def parseArgs(self):
         args = self.parser.parse_args()
-        args.infile = FileReader(args.infile, args.header, args.delimiter)
+        if hasattr(args, 'infile'):
+            args.infile = FileReader(args.infile, args.header, args.delimiter)
+        else:
+            args.infiles = [FileReader(infile, args.header, args.delimiter) for infile in args.infiles]
         if hasattr(args, 'group'):
             args.group_names = args.infile.header.names(args.group)
             args.group = args.infile.header.indexes(args.group)
@@ -288,7 +292,10 @@ class ParameterParser:
         return args
         
     def getArgs(self, args):
-        args.outfile = FileWriter(args.outfile, args.infile, args)
+        if hasattr(args, 'infile'):
+            args.outfile = FileWriter(args.outfile, args.infile, args)
+        else:
+            args.outfile = FileWriter(args.outfile, None, args)
         return args
 
 if __name__ == "__main__":
