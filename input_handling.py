@@ -100,12 +100,16 @@ def fileRange(startFile, endFile):
     return sorted(ret)
 
 def openFile(filename, opts):
-    return gzip.open(filename, opts+'b') if filename.endswith('.gz') else open(filename, opts)
+    if type(filename) is str:
+        return gzip.open(os.path.expanduser(filename), opts+'b') if filename.endswith('.gz') else open(os.path.expanduser(filename), opts)
+    elif type(filename) is file:
+        return filename
+    else:
+        raise IOError('Unknown input type: %s' % type(filename))
 
 class Header:
-    def __init__(self, columns = [], exists = True):
+    def __init__(self, columns = []):
         self.columns = columns
-        self.exists = exists
         
     def __len__(self):
         return len(self.columns)
@@ -133,12 +137,6 @@ class Header:
     def extend(self, header):
         self.addCols(header.columns)
 
-    def value(self, delimiter):
-        if self.exists:
-            return delimiter.join(self.columns)+'\n'
-        else:
-            return ''
-
     def index(self, colName):
         if colName is None:
             return colName
@@ -148,7 +146,7 @@ class Header:
             try:
                 return int(colName)
             except ValueError as e:
-                raise ValueError('Invalid column specified', e)
+                raise ValueError('Invalid column %s specified' % colName, e)
 
     def indexes(self, colNames):
         return [self.index(colName) for colName in colNames]
@@ -157,7 +155,7 @@ class Header:
         try:
             return self.columns[int(index)]
         except ValueError:
-            return 'col_'+str(index)
+            return str(index)
         except IndexError:
             return 'col_'+str(index)
 
@@ -165,39 +163,80 @@ class Header:
         return [self.name(index) for index in indexes]
 
     def copy(self):
-        return Header(copy(self.columns), self.exists)
+        return Header(copy(self.columns))
+
+class FileWriter:
+    def __init__(self, outputStream, reader, args):
+        self._outputStream = openFile(outputStream, 'w')
+        self._delimiter = reader._delimiter if reader._delimiter else ' '
+        if reader.hasHeader:
+            self.write = self._firstwrite
+            if hasattr(args, 'append') and args.append:
+                self._header = reader.header.copy()
+            else:
+                self._header = Header()
+                if hasattr(args, 'group'):
+                    self._header.addCols(reader.header.names(args.group))
+            if hasattr(args, 'labels'):
+                self._header.addCols(args.labels)
+        else:
+            self.write = self._write
+            self._header = Header()
+            
+    @property
+    def header(self):
+        return self._header
+
+    @property
+    def hasHeader(self):
+        return len(self._header.columns) > 0
+
+    def _firstwrite(self, chunks):
+        self.write = self._write
+        self.write(self._header.columns)
+        if len(self._header) != len(chunks):
+            sys.stderr.write('Warning: number of rows in output does not match number of rows in header\n')
+        self.write(chunks)
+
+    def _write(self, chunks):
+        self._outputStream.write(self._delimiter.join(chunks)+'\n')
 
 class FileReader:
     def __init__(self, inputStream, header = False, delimiter = None):
-        if type(inputStream) == str:
-            self.inputStream = openFile(inputStream, 'r')
-        elif type(inputStream) == file:
-            self.inputStream = inputStream
-        else:
-            raise IOError('Unknown input stream type: %s' % type(inputStream))
-
-        self.delimiter = delimiter if delimiter else os.environ.get('TOOLBOX_DELIMITER', ' ')
+        self._inputStream = openFile(inputStream, 'r')
+        self._delimiter = delimiter if delimiter else os.environ.get('TOOLBOX_DELIMITER', None)
         header = header or os.environ.get('TOOLBOX_HEADER', '').lower() == 'true'
         if header:
-            self.header = self._readHeader()
+            self._header = self._readHeader()
+            self.next = self._firstnext
         else:
-            self.header = Header([], exists = False)
+            self._header = Header()
+            self.next = self._next
 
-    def Delimiter(self):
-        return self.delimiter
+    @property
+    def header(self):
+        return self._header
 
-    def Header(self):
-        return self.header
+    @property
+    def hasHeader(self):
+        return len(self._header.columns) > 0
 
     def _readHeader(self):
-        preamble = self.inputStream.next()
-        return Header(preamble.strip().split(self.delimiter))
+        preamble = self._inputStream.next()
+        return Header(preamble.strip().split(self._delimiter))
         
     def __iter__(self):
         return self
+
+    def _firstnext(self):
+        self.next = self._next
+        row = self.next()
+        if len(row) != len(self._header):
+            sys.stderr.write('Warning: number of rows in input does not match number of rows in header\n')
+        return row
         
-    def next(self):
-        return self.inputStream.next().strip().split(self.delimiter)
+    def _next(self):
+        return self._inputStream.next().strip().split(self._delimiter)
 
     def readline(self):
         try:
@@ -206,13 +245,43 @@ class FileReader:
             return ''
 
     def close(self):
-        self.inputStream.close()
+        self._inputStream.close()
 
     def __enter__(self):
         return self
         
     def __exit__(self, type, value, traceback):
         self.close()
+
+class ParameterParser:
+    def __init__(self, descrip, group = True, columns = True, append = True, labels = None):
+        self.parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=descrip)
+        self.parser.add_argument('infile', nargs='?', default=sys.stdin)
+        self.parser.add_argument('outfile', nargs='?', default=sys.stdout)
+        if group:
+            self.parser.add_argument('-g', '--group', nargs='+', default=[], help='column(s) to group input by')
+        if columns:
+            self.parser.add_argument('-c', '--columns', nargs='+', default=[0], help='column(s) to manipulate')
+        if labels:
+            self.parser.add_argument('-l', '--labels', nargs='+', default=labels, help='labels for the column(s)')
+        if append:
+            self.parser.add_argument('--append', action='store_true', default=False, help='keep original columns in output')
+        self.parser.add_argument('--delimiter', default=None)
+        self.parser.add_argument('--header', action='store_true', default=False)
+
+    def parseArgs(self):
+        return self.parser.parse_args()
+        
+    def getArgs(self, args):
+        args.infile = FileReader(args.infile, args.header, args.delimiter)
+        args.outfile = FileWriter(args.outfile, args.infile, args)
+        if hasattr(args, 'group'):
+            args.group_names = args.infile.header.names(args.group)
+            args.group = args.infile.header.indexes(args.group)
+        if hasattr(args, 'columns'):
+            args.columns_names = args.infile.header.names(args.columns)
+            args.columns = args.infile.header.indexes(args.columns)
+        return args
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\

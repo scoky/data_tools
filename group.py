@@ -62,7 +62,7 @@ class UnsortedInputGrouper(object):
             value.done()
             
 def run_grouping(infile, group_cls=Group, group_cols=[0], ordered=False):
-    group_cols = infile.Header().indexes(group_cols)
+    group_cols = infile.header.indexes(group_cols)
     if ordered:
         grouper = SortedInputGrouper(infile, group_cols)
         for chunk in grouper.group():
