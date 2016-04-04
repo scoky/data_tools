@@ -19,7 +19,6 @@ class PadGroup(Group):
         for element in args.elements:
             if element not in self.present:
                 args.outfile.write(self.tup + list(element) + args.pad)
-                
 
 if __name__ == "__main__":
     pp = ParameterParser('Generate additional rows to pad input', columns = '*', append = False, labels = False, ordered = False)

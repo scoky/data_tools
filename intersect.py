@@ -9,15 +9,19 @@ if __name__ == "__main__":
     pp = ParameterParser('Compute intersection of column(s)', columns = 0, infiles = '*', group = False, append = False, ordered = False)
     pp.parser.add_argument('-o', '--on', nargs='+', default=['0'], help='columns to join upon')
     args = pp.parseArgs()
-    args = pp.getArgs(args)
     if len(args.on) == 1:
         args.on = args.on * len(args.infiles)
     if len(args.on) != len(args.infiles):
         raise Exception('InputError: invalid columns argument\n')
     cols = []
+    names = []
     for infile,c in zip(args.infiles, args.on):
         cols.append(infile.header.indexes(c.split('+')))
+        names.append(infile.header.names(c.split('+')))
     args.on = cols
+    args = pp.getArgs(args)
+    if args.infiles[0].hasHeader:
+        args.outfile.header.addCols(args.infiles[0].header.names(args.on[0]))
 
     items = None
     cur = set()
