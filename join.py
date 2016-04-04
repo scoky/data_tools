@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
@@ -83,7 +83,7 @@ def outer_join(args):
 if __name__ == "__main__":
     pp = ParameterParser('Join files on column(s)', columns = 0, infiles = '*', group = False, append = False)
     pp.parser.add_argument('-m', '--method', choices = ['inner', 'left_outer', 'outer'], default='inner')
-    pp.parser.add_argument('-o', '--on', nargs='+', default=[0], help='columns to join upon')
+    pp.parser.add_argument('-o', '--on', nargs='+', default=['0'], help='columns to join upon')
     args = pp.parseArgs()
     args = pp.getArgs(args)
     if len(args.on) == 1:

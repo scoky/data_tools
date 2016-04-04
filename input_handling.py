@@ -240,7 +240,7 @@ class FileReader:
         try:
             return self.next()
         except StopIteration:
-            return ''
+            return None
 
     def close(self):
         self._inputStream.close()
