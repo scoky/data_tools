@@ -1,11 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
-import logging
-import traceback
-from collections import OrderedDict
-from collections import MutableMapping
+from collections import OrderedDict,MutableMapping
 
 class FileHandleDict(MutableMapping):
     def __init__(self, limit=50):

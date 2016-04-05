@@ -1,14 +1,14 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
 import argparse
 import operator
 from decimal import Decimal,getcontext
-from input_handling import findNumber,FileReader,Header
+from input_handling import findNumber,ParameterParser
 from collections import defaultdict
 
-def ecdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=None, delimiter=None, padding=[]):
+def ecdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=None, padding=[]):
     if len(padding) % 2 != 0:
         raise Exception('Invalid padding!')
 
@@ -24,18 +24,15 @@ def ecdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=No
         getFunc = getNumber
 
     # Input is binned
-    if binColumn:
+    if not binColumn is None:
         addFunc = getBinNumber
     else:
         addFunc = getOneNumber
 
-    jdelim = delimiter if delimiter != None else ' '
-
     bins = defaultdict(int)
     total = 0
 
-    for line in infile:
-        chunks = line.rstrip().split(delimiter)
+    for chunks in infile:
         value = getFunc(chunks, column, quant)
         count = addFunc(chunks, binColumn)
         bins[value] += count
@@ -55,10 +52,10 @@ def ecdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=No
     accum = 0
     keys = sorted(bins)
     if len(keys) > 0:
-        outfile.write(str(keys[0]) + jdelim + '0.0\n')
+        outfile.write([keys[0], 0])
     for key in keys:
         accum += bins[key]
-        outfile.write(str(key) + jdelim + str(Decimal(accum) / total) + '\n')
+        outfile.write([key, Decimal(accum) / total])
         
 zero = Decimal(0)
 def getQuantNumber(vals, col, quant):
@@ -72,32 +69,18 @@ def getOneNumber(vals, col):
     return 1
 
 if __name__ == "__main__":
-    # set up command line args
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Compute ecdf')
-    parser.add_argument('infile', nargs='?', default=sys.stdin)
-    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--column', default=0, help='column contain values')
-    parser.add_argument('-b', '--bin', default=None, help='column containing bin counts')
-    parser.add_argument('-q', '--quantize', type=Decimal, default=None, help='fixed exponent')
-    parser.add_argument('-s', '--significantDigits', type=int, default=None, help='number of significant digits')
-    parser.add_argument('-d', '--delimiter', default=None, help='delimiter between columns in file')
-    parser.add_argument('-p', '--padding', nargs='+', type=Decimal, default=[], help='additional binned values to add. format: "value count"')
-    args = parser.parse_args()
-
-    args.infile = FileReader(args.infile)
-    # Get the header from the input file if there is one
-    args.inheader = args.infile.Header()
-    # Setup output header
-    args.outheader = Header()
-    args.outheader.addCols(['x', 'y'])
-    # Write output header
-    args.outfile.write(args.outheader.value())
-    # Get columns for use in computation
-    args.column = args.inheader.index(args.column)
-    args.bin = args.inheader.index(args.bin)
+    pp = ParameterParser('Compute pdf', columns = 1, labels = [None], append = False, group = False)
+    pp.parser.add_argument('-b', '--bin', default=None, help='column containing bin counts')
+    pp.parser.add_argument('-q', '--quantize', type=Decimal, default=None, help='fixed exponent')
+    pp.parser.add_argument('-s', '--significantDigits', type=int, default=None, help='number of significant digits')
+    pp.parser.add_argument('-p', '--padding', nargs='+', type=Decimal, default=[], help='additional binned values to add. format: "value count"')
+    args = pp.parseArgs()
+    if not any(args.labels):
+        args.labels = ['x', 'y']
+    args = pp.getArgs(args)
+    args.bin = args.infile.header.index(args.bin)
 
     ecdfFile(args.infile, args.outfile, column=args.column, quant=args.quantize, sigDigits=args.significantDigits,\
-       binColumn=args.bin, delimiter=args.delimiter, padding=args.padding)
+       binColumn=args.bin, padding=args.padding)
 
 

@@ -4,13 +4,10 @@ import os
 import re
 import sys
 import glob
-import string
 import socket
 import struct
-import logging
 import datetime
 import argparse
-import traceback
 from copy import copy
 from decimal import Decimal,InvalidOperation
 
@@ -31,14 +28,7 @@ def findNumber(value):
     try:
         return Decimal(value)
     except InvalidOperation:
-        return Decimal(number_pattern.search(value).group())
-
-# Search an input value for a number
-def findSignificantNumber(value, digits):
-    try:
-        return Decimal(value)
-    except InvalidOperation:
-        return Decimal(number_pattern.search(value).group())
+        return Decimal(number_pattern.search(value.replace(',', '')).group())
 
 def findIPAddress(value):
     try:
@@ -72,14 +62,6 @@ def ToUnixTime(dt):
 
 def ToDateTime(dt):
     return datetime.datetime.utcfromtimestamp(dt)
-
-def parseLines(infile, delimiter=None, columns=[0], function=findIdentity):
-    for line in infile:
-        try:
-            chunks = line.rstrip().split(delimiter)
-            yield [function(chunks[i]) for i in columns]
-        except IndexError as e:
-            logging.error('Error on input: %s%s\n%s', line, e, traceback.format_exc())
 
 def concatFiles(files, opts='r'):
     for f in files:
@@ -166,8 +148,8 @@ class Header:
         return Header(copy(self.columns))
 
 class FileWriter:
-    def __init__(self, outputStream, reader, args):
-        self._outputStream = openFile(outputStream, 'w')
+    def __init__(self, outputStream, reader, args, opts = 'w'):
+        self._outputStream = openFile(outputStream, opts)
         self._delimiter = args.delimiter if args.delimiter else os.environ.get('TOOLBOX_DELIMITER', ' ')
         self.write = self._firstwrite
         self._header = Header()
@@ -210,6 +192,10 @@ class FileReader:
         else:
             self._header = Header()
             self.next = self._next
+
+    @property
+    def delimiter(self):
+        return self._delimiter
 
     @property
     def header(self):

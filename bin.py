@@ -1,59 +1,63 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
 import argparse
 from collections import defaultdict
-from input_handling import findNumber,FileReader,Header
+from input_handling import ParameterParser
 from group import Group,run_grouping
 
 class BinGroup(Group):
     def __init__(self, tup):
         super(BinGroup, self).__init__(tup)
-        self.key = str(args.fuzz(tup))
+        self.key = args.fuzz(tup)
 
     def add(self, chunks):
         args.bins[self.key] += 1
 
     def done(self):
         pass
-            
+
+class SimilarGroup(Group):
+    def __init__(self, tup):
+        super(SimilarGroup, self).__init__(tup)
+        self.key = tuple(self.tup)
+        for k in args.bins:
+            if args.similar(self.key, k):
+                self.key = k
+                break
+
+    def add(self, chunks):
+        args.bins[self.key] += 1
+
+    def done(self):
+        pass
+
 # Default handling of input value    
 def nofuzz(v):
-    return args.jdelim.join(v)
+    return tuple(v)
 
 if __name__ == "__main__":
-    # set up command line args
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Compute bins from column(s)')
-    parser.add_argument('infile', nargs='?', default=sys.stdin)
-    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-g', '--group', nargs='+', default=[0])
-    parser.add_argument('-f', '--fuzz', default=None, help='lambda specifying how to fuzz bins')
-    parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-o', '--ordered', action='store_true', default=False, help='input is sorted by group')
-    args = parser.parse_args()
+    pp = ParameterParser('Compute bins', columns = 0, labels = [None], append = False)
+    pp.parser.add_argument('-f', '--fuzz', default=None, help='lambda specifying fuzz for bins')
+    pp.parser.add_argument('-s', '--similar', default=None, help='lambda specifying similarity between two arguments')
+    args = pp.parseArgs()
+    if not any(args.labels):
+        args.labels = ['_'.join(args.group_names + ['bin'])]
+    args = pp.getArgs(args)
+    if all((args.similar, args.fuzz)):
+        raise Exception('Cannot specify both fuzz and similar')
     if not args.fuzz:
         args.fuzz = nofuzz
+        cls = BinGroup
     else:
         args.fuzz = eval(args.fuzz)
-    args.infile = FileReader(args.infile)
-
-    # Get the header from the input file if there is one
-    args.inheader = args.infile.Header()
-    # Setup output header
-    args.outheader = Header()
-    args.outheader.addCols(args.inheader.names(args.group))
-    args.outheader.addCol('_'.join(args.inheader.names(args.group)) + '_count')
-    # Write output header
-    args.outfile.write(args.outheader.value())
-    # Get columns for use in computation
-    args.group = args.inheader.indexes(args.group)
+    if args.similar:
+        args.similar = eval(args.similar)
+        cls = SimilarGroup
 
     args.bins = defaultdict(int)
-    args.jdelim = args.delimiter if args.delimiter != None else ' '
-    run_grouping(args.infile, BinGroup, args.group, args.delimiter, args.ordered)
-    
+    run_grouping(args.infile, cls, args.group, args.ordered)
     for k,v in args.bins.iteritems():
-        args.outfile.write(k + args.jdelim + str(v) + '\n')
+        args.outfile.write(list(k) + [v])
 
