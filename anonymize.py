@@ -1,11 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
 import argparse
-from decimal import Decimal
 from collections import defaultdict
-from input_handling import findNumber,FileReader,Header,openFile
+from input_handling import ParameterParser,FileReader,FileWriter
 from group import Group,run_grouping
 
 class AnonGroup(Group):
@@ -15,7 +14,7 @@ class AnonGroup(Group):
         self.forward = {}
 
     def add(self, chunks):
-        for name,c in zip(args.colNames, args.columns):
+        for name,c in zip(args.columns_names, args.columns):
             if chunks[c] not in self.forward:
                 # Find a non-colliding hash value
                 val = abs(hash(chunks[c]))
@@ -27,10 +26,10 @@ class AnonGroup(Group):
                 
                 # Write to mapping file
                 if args.mapping:
-                    args.mapping.write(args.jdelim.join((name, chunks[c], self.forward[chunks[c]])) + '\n')
+                    args.mapping.write([name, chunks[c], self.forward[chunks[c]]])
 
             chunks[c] = self.forward[chunks[c]]
-        args.outfile.write(args.jdelim.join(chunks) + '\n')
+        args.outfile.write(chunks)
 
     def done(self):
         pass
@@ -40,62 +39,39 @@ class DeanonGroup(Group):
         super(DeanonGroup, self).__init__(tup)
 
     def add(self, chunks):
-        for name,c in zip(args.colNames, args.columns):
+        for name,c in zip(args.columns_names, args.columns):
             val = args.map[name][chunks[c]]
             chunks[c] = val
-
-        args.outfile.write(args.jdelim.join(chunks) + '\n')
+        args.outfile.write(chunks)
 
     def done(self):
         pass
 
-def readMapping(mapfile, colName, value, anon):
+def readMapping(mapfile):
     mappings = defaultdict(dict)
-    for line in mapfile:
-        chunks = line.rstrip().split()
-        mappings[chunks[colName]][chunks[anon]] = chunks[value]
+    for chunks in mapfile:
+        mappings[chunks[0]][chunks[2]] = chunks[1]
     return mappings
 
 if __name__ == "__main__":
-    # set up command line args
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Replace column(s) with hashes for anonymization')
-    parser.add_argument('infile', nargs='?', default=sys.stdin)
-    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-m', '--mapping', default=None)
-    parser.add_argument('-c', '--columns', nargs='+', default=[0])
-    parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-r', '--reverse', action='store_true', default=False)
-    parser.add_argument('-o', '--ordered', action='store_true', default=False, help='input is sorted by group')
-    args = parser.parse_args()
-    args.infile = FileReader(args.infile)
+    pp = ParameterParser('Replace column(s) with hashes for anonymization', columns = '*', append = False, ordered = False, group = False)
+    pp.parser.add_argument('-m', '--mapping', default=None)
+    pp.parser.add_argument('-r', '--reverse', action='store_true', default=False)
+    args = pp.parseArgs()
+    args.append = True
+    args = pp.getArgs(args)
 
-    # Get the header from the input file if there is one
-    args.inheader = args.infile.Header()
-    args.outheader = args.inheader.copy()
     if args.mapping and not args.reverse:
-        args.mapheader = Header()
-        args.mapheader.addCol('col')
-        args.mapheader.addCol('value')
-        args.mapheader.addCol('anonymized')
-        args.mapping = openFile(args.mapping, 'w')
-        args.mapping.write(args.mapheader.value())
+        args.mapping = FileWriter(args.mapping, None, args)
+        if args.infile.hasHeader:
+            args.mapping.header.addCols(['column', 'value', 'anonymized'])
     elif args.mapping:
-        args.mapping = FileReader(args.mapping)
-        args.mapheader = args.mapping.Header()
-        args.map = readMapping(args.mapping, args.mapheader.index('col'), args.mapheader.index('value'), args.mapheader.index('anonymized'))
-        args.mapping.close()
-        
-    # Write output header
-    args.outfile.write(args.outheader.value())
-    # Get columns for use in computation
-    args.colNames = args.inheader.names(args.columns)
-    args.columns = args.inheader.indexes(args.columns)
+        with FileReader(args.mapping, args) as mapfile:
+            args.map = readMapping(mapfile)
 
-    args.jdelim = args.delimiter if args.delimiter != None else ' '
     if args.reverse:
         group = DeanonGroup
     else:
         group = AnonGroup
-    run_grouping(args.infile, group, [], args.delimiter, args.ordered)
+    run_grouping(args.infile, group, [], False)
 

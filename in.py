@@ -16,7 +16,7 @@ def main():
     for item in args.elements:
         elements.add(tuple(item,))
     for listfile in args.files:
-        with FileReader(listfile, args.header, args.delimiter) as f:
+        with FileReader(listfile, args) as f:
             for chunks in f:
                 elements.add(tuple(chunks))
 

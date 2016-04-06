@@ -182,10 +182,10 @@ class FileWriter:
         self._outputStream.write(self._delimiter.join(map(str, chunks))+'\n')
 
 class FileReader:
-    def __init__(self, inputStream, header = False, delimiter = None):
+    def __init__(self, inputStream, args):
         self._inputStream = openFile(inputStream, 'r')
-        self._delimiter = delimiter if delimiter else os.environ.get('TOOLBOX_DELIMITER', None)
-        header = header or os.environ.get('TOOLBOX_HEADER', '').lower() == 'true'
+        self._delimiter = args.delimiter if args.delimiter else os.environ.get('TOOLBOX_DELIMITER', None)
+        header = args.header or os.environ.get('TOOLBOX_HEADER', '').lower() == 'true'
         if header:
             self._header = self._readHeader()
             self.next = self._firstnext
@@ -263,9 +263,9 @@ class ParameterParser:
     def parseArgs(self):
         args = self.parser.parse_args()
         if hasattr(args, 'infile'):
-            args.infile = FileReader(args.infile, args.header, args.delimiter)
+            args.infile = FileReader(args.infile, args)
         else:
-            args.infiles = [FileReader(infile, args.header, args.delimiter) for infile in args.infiles]
+            args.infiles = [FileReader(infile, args) for infile in args.infiles]
         if hasattr(args, 'group'):
             args.group_names = args.infile.header.names(args.group)
             args.group = args.infile.header.indexes(args.group)

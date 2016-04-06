@@ -29,7 +29,7 @@ if __name__ == "__main__":
     args = pp.getArgs(args)
 
     elements = set()
-    with FileReader(args.elements, args.header, args.delimiter) as f:
+    with FileReader(args.elements, args) as f:
         for chunks in f:
             elements.add(tuple(chunks))
     args.elements = elements
