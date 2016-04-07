@@ -1,9 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
 import argparse
-from input_handling import findNumber,FileReader,Header
+from input_handling import findNumber,ParameterParser
 from group import Group,run_grouping
 from decimal import Decimal
 from numpy import convolve as np_convolve
@@ -12,50 +12,31 @@ class ConvolveGroup(Group):
     def __init__(self, tup):
         super(ConvolveGroup, self).__init__(tup)
         self.vals = []
+        self.add = self._addall if args.append else self._add
 
-    def add(self, chunks):
+    def _add(self, chunks):
         self.vals.append(findNumber(chunks[args.column]))
+    def _addall(self, chunks):
+        self.vals.append(chunks)
 
     def done(self):
-        if len(self.tup) > 0:
-            prefix = args.jdelim.join(self.tup) + args.jdelim
+        if args.append:
+            for i,v in enumerate(np_convolve(args.function, [findNumber(val[args.column]) for val in self.vals], mode=args.mode)):
+                if args.mode == 
+                args.outfile.write(self.vals[i] + [v])
         else:
-            prefix = ''
-            
-        for v in np_convolve(args.function, self.vals, mode=args.mode):
-            args.outfile.write(prefix + str(v) + '\n')
+            for v in np_convolve(args.function, self.vals, mode=args.mode):
+                args.outfile.write(self.tup + [v])
 
 if __name__ == "__main__":
-    # set up command line args
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Compute maximum of column(s)')
-    parser.add_argument('infile', nargs='?', default=sys.stdin)
-    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--column', default=0)
-    parser.add_argument('-g', '--group', nargs='+', default=[])
-    parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-m', '--mode', default='full', choices=['full', 'same', 'valid'])
-    parser.add_argument('-f', '--function', default=[Decimal('0.333'), Decimal('0.334'), Decimal('0.333')], type=Decimal, nargs='+', help='append result to columns')
-    parser.add_argument('-a', '--append', action='store_true', default=False, help='append result to columns')
-    parser.add_argument('-o', '--ordered', action='store_true', default=False, help='input is sorted by group')
-    args = parser.parse_args()
-    args.infile = FileReader(args.infile)
+    pp = ParameterParser('Convolve on a column', columns = 1, labels = [None], append = False)
+    pp.parser.add_argument('-m', '--mode', default='full', choices=['full', 'same', 'valid'])
+    pp.parser.add_argument('-f', '--function', default=[Decimal('0.333'), Decimal('0.334'), Decimal('0.333')], type=Decimal, nargs='+', help='append result to columns')
+    args = pp.parseArgs()
+    if not any(args.labels):
+        args.labels = [args.column_name + '_convolve']
+    args = pp.getArgs(args)
+    args.append = False
 
-    # Get the header from the input file if there is one
-    args.inheader = args.infile.Header()
-    # Setup output header
-    if args.append:
-        args.outheader = args.inheader.copy()
-    else:
-        args.outheader = Header()
-        args.outheader.addCols(args.inheader.names(args.group))
-    args.outheader.addCol(args.inheader.name(args.column)+'_convolve')
-    # Write output header
-    args.outfile.write(args.outheader.value())
-    # Get columns for use in computation
-    args.column = args.inheader.index(args.column)
-    args.group = args.inheader.indexes(args.group)
-    
-    args.jdelim = args.delimiter if args.delimiter != None else ' '
-    run_grouping(args.infile, ConvolveGroup, args.group, args.delimiter, args.ordered)
+    run_grouping(args.infile, ConvolveGroup, args.group, args.ordered)
 
