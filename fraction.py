@@ -1,72 +1,51 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
 import argparse
-from input_handling import findNumber,FileReader,Header
+from input_handling import findNumber,ParameterParser
 from group import Group,run_grouping
+from collections import defaultdict
 
 class FractionGroup(Group):
     def __init__(self, tup):
         super(FractionGroup, self).__init__(tup)
-        self.rows = []
+        self.rows = defaultdict(int)
+        self.total = 0
+        self.add = self._add
+        self.done = self._done
         if args.append:
-            self.add = self.addFull
-            self.done = self.doneFull
-        else:
-            self.add = self.addCol
-            self.done = self.doneCol
-
-    def addFull(self, chunks):
-        chunks.append(findNumber(chunks[args.column]))
-        self.rows.append(chunks)
+            self.fullrows = defaultdict(list)
+            self.add = self.addrow
+            self.done = self.donerow
         
-    def addCol(self, chunks):
-        self.rows.append(findNumber(chunks[args.column]))
+    def _add(self, chunks):
+        num = findNumber(chunks[args.column])
+        self.rows[num] += 1
+        self.total += num
+    
+    def addrow(self, chunks):
+        num = findNumber(chunks[args.column])
+        self.rows[num] += 1
+        self.total += num
+        self.fullrows[num].append(chunks)
+        
+    def donerow(self):
+        for r in self.rows.iterkeys():
+            for row in self.fullrows[r]:
+                args.outfile.write(row + [r / self.total])
 
-    def doneFull(self):
-        total = sum(r[-1] for r in self.rows)
-        for r in self.rows:
-            r[-1] = str(r[-1] / total)
-            args.outfile.write(args.jdelim.join(r) + '\n')
-
-    def doneCol(self):
-        prefix = ''
-        if len(self.tup) > 0:
-            prefix = args.jdelim.join(self.tup) + args.jdelim
-        total = sum(self.rows)
-        for r in self.rows:
-            args.outfile.write(prefix + str(r / total) + '\n')
+    def _done(self):
+        for r,c in self.rows.iteritems():
+            for i in range(c):
+                args.outfile.write(self.tup + [r / self.total])
 
 if __name__ == "__main__":
-    # set up command line args
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Compute fraction from column(s)')
-    parser.add_argument('infile', nargs='?', default=sys.stdin)
-    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--column', default=0)
-    parser.add_argument('-g', '--group', nargs='+', default=[])
-    parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-a', '--append', action='store_true', default=False, help='append result to columns')
-    parser.add_argument('-o', '--ordered', action='store_true', default=False, help='input is sorted by group')
-    args = parser.parse_args()
-    args.infile = FileReader(args.infile)
-
-    # Get the header from the input file if there is one
-    args.inheader = args.infile.Header()
-    # Setup output header
-    if args.append:
-        args.outheader = args.inheader.copy()
-    else:
-        args.outheader = Header()
-        args.outheader.addCols(args.inheader.names(args.group))
-    args.outheader.addCol(args.inheader.name(args.column) + '_fraction')
-    # Write output header
-    args.outfile.write(args.outheader.value())
-    # Get columns for use in computation
-    args.column = args.inheader.index(args.column)
-    args.group = args.inheader.indexes(args.group)
-
-    args.jdelim = args.delimiter if args.delimiter != None else ' '
-    run_grouping(args.infile, FractionGroup, args.group, args.delimiter, args.ordered)
+    pp = ParameterParser('Compute fraction of column sum', columns = 1, labels = [None])
+    args = pp.parseArgs()
+    if not any(args.labels):
+        args.labels = [args.column_name + '_fraction']
+    args = pp.getArgs(args)
+    
+    run_grouping(args.infile, FractionGroup, args.group, args.ordered)
 

@@ -1,91 +1,62 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
 import argparse
 from math import log,pow
-from input_handling import findNumber,FileReader,Header
+from input_handling import findNumber,ParameterParser
 from group import Group,run_grouping
 
 class MeanGroup(Group):
     def __init__(self, tup):
         super(MeanGroup, self).__init__(tup)
-        self.sums = [0]*len(args.columns)
-        self.count = [0]*len(args.columns)
-        self.add = self.addBin if len(args.bins) > 0 else self.addVal
+        self.sums = 0
+        self.count = 0
+        self.add = self.addVal if args.bin is None else self.addBin
 
     def addVal(self, chunks):
-        vals = [findNumber(chunks[i]) for i in args.columns]
-        self.sums[:] = [v+s for v,s in zip(vals, self.sums)]
-        self.count[:] = [c+1 for c in self.count]
+        self.sums += findNumber(chunks[args.column])
+        self.count += 1
         
     def addBin(self, chunks):
-        vals = [findNumber(chunks[i]) for i in args.columns]
-        bins = [findNumber(chunks[i]) for i in args.bins]
-        self.sums[:] = [(b*v)+s for v,s,b in zip(vals, self.sums, bins)]
-        self.count[:] = [c+b for c,b in zip(self.count, bins)]
+        b = findNumber(chunks[args.bin])
+        self.sums += b*findNumber(chunks[args.column])
+        self.count += b
 
     def done(self):
-        if len(self.tup) > 0:
-            args.outfile.write(args.jdelim.join(self.tup) + args.jdelim)
-        args.outfile.write(args.jdelim.join(map(str, [s/c for s,c in zip(self.sums, self.count)])) + '\n')
+        args.outfile.write(self.tup + [self.sums / self.count])
 
 class GeometricGroup(Group):
     def __init__(self, tup):
         super(GeometricGroup, self).__init__(tup)
-        self.sums = [0]*len(args.columns)
-        self.count = [0]*len(args.columns)
-        self.add = self.addBin if len(args.bins) > 0 else self.addVal
+        self.sums = 1
+        self.count = 0
+        self.add = self.addVal if args.bin is None else self.addBin
 
     def addVal(self, chunks):
-        vals = [findNumber(chunks[i]) for i in args.columns]
-        self.sums[:] = [log(v, 10)+s for v,s in zip(vals, self.sums)]
-        self.count[:] = [c+1 for c in self.count]
+        self.sums *= findNumber(chunks[args.column])
+        self.count += 1
         
     def addBin(self, chunks):
-        vals = [findNumber(chunks[i]) for i in args.columns]
-        bins = [findNumber(chunks[i]) for i in args.bins]
-        self.sums[:] = [(b*log(v, 10))+s for v,s,b in zip(vals, self.sums, bins)]
-        self.count[:] = [c+b for c,b in zip(self.count, bins)]
+        b = findNumber(chunks[args.bin])
+        self.sums *= pow(findNumber(chunks[args.column]), b)
+        self.count += b
 
     def done(self):
-        if len(self.tup) > 0:
-            args.outfile.write(args.jdelim.join(self.tup) + args.jdelim)
-        args.outfile.write(args.jdelim.join(map(str, [pow(10, s/c) for s,c in zip(self.sums, self.count)])) + '\n')
+        args.outfile.write(self.tup + [pow(self.sums, 1 / self.count)])
 
 if __name__ == "__main__":
-    # set up command line args
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Compute mean of column(s)')
-    parser.add_argument('infile', nargs='?', default=sys.stdin)
-    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-c', '--columns', nargs='+', default=[0])
-    parser.add_argument('-b', '--bins', nargs='+', default=[])
-    parser.add_argument('-g', '--group', nargs='+', default=[])
-    parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-e', '--geometric', action='store_true', default=False, help='compute geometric mean')
-    parser.add_argument('-o', '--ordered', action='store_true', default=False, help='input is sorted by group')
-    args = parser.parse_args()
-    args.infile = FileReader(args.infile)
+    pp = ParameterParser('Compute mean of column', columns = 1, labels = [None])
+    pp.parser.add_argument('-b', '--bin', default=None)
+    pp.parser.add_argument('-e', '--geometric', action='store_true', default=False, help='compute geometric mean')
+    args = pp.parseArgs()
+    if not any(args.labels):
+        args.labels = [args.column_name + ('_gmean' if args.geometric else '_mean')]
+    args = pp.getArgs(args)
+    args.bin = args.infile.header.index(args.bin)
+
     if args.geometric:
-        group = GeometricGroup
-        extension = '_geometric_mean'
+        cls = GeometricGroup
     else:
-        group = MeanGroup
-        extension = '_mean'
-
-    # Get the header from the input file if there is one
-    args.inheader = args.infile.Header()
-    # Setup output header
-    args.outheader = Header()
-    args.outheader.addCols(args.inheader.names(args.group))
-    args.outheader.addCols([col+extension for col in args.inheader.names(args.columns)])
-    # Write output header
-    args.outfile.write(args.outheader.value())
-    # Get columns for use in computation
-    args.columns = args.inheader.indexes(args.columns)
-    args.group = args.inheader.indexes(args.group)
-    args.bins = args.inheader.indexes(args.bins)
-
-    args.jdelim = args.delimiter if args.delimiter != None else ' '
-    run_grouping(args.infile, group, args.group, args.delimiter, args.ordered)
+        cls = MeanGroup
+    run_grouping(args.infile, cls, args.group, args.ordered)
