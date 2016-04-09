@@ -1,9 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
 import argparse
-import traceback
 from collections import deque
 from input_handling import ParameterParser,findNumber
 from group import Group,run_grouping
