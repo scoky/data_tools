@@ -243,7 +243,7 @@ class ParameterParser:
         if infiles == 1:
             self.parser.add_argument('infile', nargs='?', default=sys.stdin)
         else:
-            self.parser.add_argument('infiles', nargs='+', default=[sys.stdin])
+            self.parser.add_argument('infiles', nargs='*', default=[sys.stdin])
         self.parser.add_argument('outfile', nargs='?', default=sys.stdout)
         if group:
             self.parser.add_argument('-g', '--group', nargs='+', default=[], help='column(s) to group input by')
@@ -266,6 +266,7 @@ class ParameterParser:
             args.infile = FileReader(args.infile, args)
         else:
             args.infiles = [FileReader(infile, args) for infile in args.infiles]
+            args.infile = args.infiles[0]
         if hasattr(args, 'group'):
             args.group_names = args.infile.header.names(args.group)
             args.group = args.infile.header.indexes(args.group)

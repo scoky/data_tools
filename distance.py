@@ -1,11 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
 import math
 import argparse
 from collections import defaultdict
-from input_handling import findNumber,FileReader,Header
+from input_handling import findNumber,ParameterParser
 from group import Group,run_grouping
 from multiprocessing import Pool
 
@@ -113,43 +113,30 @@ def multithreaded():
     try:
         results = pool.imap_unordered(args.metricf, generatePairs(), args.chunk)
         for d,state in results:
-            args.outfile.write(args.jdelim.join(state[0]+state[1]) + args.jdelim + str(d) + '\n')
+            args.outfile.write(state[0] + state[1] + [d])
     except KeyboardInterrupt:
         pool.terminate()
         sys.exit()
 
 if __name__ == "__main__":
-    # set up command line args
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Compute similarity/distance between groups')
-    parser.add_argument('infiles', nargs='*', type=FileReader, default=[FileReader(sys.stdin)])
-    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-m', '--metric', default='cosine', choices=['cosine', 'jaccard', 'hamming', 'levenshtein', 'angular', 'euclidean'])
-    parser.add_argument('-k', '--key', default = 0)
-    parser.add_argument('-v', '--value', default = 1)
-    parser.add_argument('-g', '--group', nargs = '+', default = [])
-    parser.add_argument('-d', '--delimiter', default = None)
-    parser.add_argument('-u', '--multithreaded', action='store_true', default=False)
-    parser.add_argument('-t', '--threads', default=None, type=int, help='number of threads to user')
-    parser.add_argument('-c', '--chunk', default=20, help='chunk size to assign to each thread')
-    args = parser.parse_args()
+    pp = ParameterParser('Compute similarity/distance between groups', infiles = '*', columns = 0, append = False)
+    pp.parser.add_argument('-m', '--metric', default='cosine', choices=['cosine', 'jaccard', 'hamming', 'levenshtein', 'angular', 'euclidean'])
+    pp.parser.add_argument('-k', '--key', default = 0)
+    pp.parser.add_argument('-v', '--value', default = 1)
+    pp.parser.add_argument('-u', '--multithreaded', action='store_true', default=False)
+    pp.parser.add_argument('-t', '--threads', default=None, type=int, help='number of threads to user')
+    pp.parser.add_argument('-c', '--chunk', default=20, help='chunk size to assign to each thread')
+    args = pp.parseArgs()
+    args = pp.getArgs(args)
+    if args.infiles[0].hasHeader:
+        args.outfile.header.addCols(args.group_names)
+        args.outfile.header.addCol('distance')
+    args.key = args.infile.header.index(args.key)
+    args.value = args.infile.header.index(args.value)
 
     args.groups = []
-    args.jdelim = args.delimiter if args.delimiter != None else ' '
     for infile in args.infiles:
-        k,v,g = args.key,args.value,args.group
-        inheader = infile.Header()
-        args.key = inheader.index(args.key)
-        args.value = inheader.index(args.value)
-        args.group = inheader.indexes(args.group)
-        run_grouping(infile, DistanceGroup, args.group, args.delimiter, False)
-        args.key,args.value,args.group = k,v,g
-
-    outheader = Header()
-    outheader.addCols(inheader.names(args.group))
-    outheader.addCols(inheader.names(args.group))
-    outheader.addCol('distance')
-    args.outfile.write(outheader.value())
+        run_grouping(infile, DistanceGroup, args.group, args.ordered)
 
     if args.multithreaded:
         args.metricf = getattr(sys.modules[__name__], 'metric_'+args.metric+'_m')
@@ -157,5 +144,5 @@ if __name__ == "__main__":
     else:
         args.metricf = getattr(sys.modules[__name__], 'metric_'+args.metric)
         for v1,v2,state in generatePairs():
-            args.outfile.write(args.jdelim.join(state[0]+state[1]) + args.jdelim + str(args.metricf(v1, v2)[0]) + '\n')
+            args.outfile.write(state[0] + state[1] + [args.metricf(v1, v2)[0]])
 
