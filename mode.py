@@ -5,8 +5,8 @@ import sys
 import argparse
 from collections import defaultdict
 from decimal import Decimal
-from input_handling import ParameterParser,findNumber
-from group import Group,run_grouping
+from toollib.files import ParameterParser,findNumber
+from toollib.group import Group,run_grouping
 
 class ModeGroup(Group):
     def __init__(self, tup):

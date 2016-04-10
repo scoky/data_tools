@@ -5,8 +5,8 @@ import sys
 import argparse
 from collections import defaultdict
 from decimal import Decimal
-from input_handling import findNumber,ParameterParser
-from group import Group,run_grouping
+from toollib.files import findNumber,ParameterParser
+from toollib.group import Group,run_grouping
 from math import sqrt
 
 class StdGroup(Group):

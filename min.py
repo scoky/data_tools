@@ -3,8 +3,8 @@
 import os
 import sys
 import argparse
-from input_handling import ParameterParser,findNumber
-from group import Group,run_grouping
+from toollib.files import ParameterParser,findNumber
+from toollib.group import Group,run_grouping
 from decimal import Decimal
 from heapq import heappush, heappop
 

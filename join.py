@@ -4,8 +4,8 @@ import os
 import sys
 import argparse
 from collections import defaultdict
-from input_handling import ParameterParser
 from itertools import product
+from toollib.files import ParameterParser
 
 def inner_join(args):
     tables = []

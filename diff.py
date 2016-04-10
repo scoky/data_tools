@@ -3,7 +3,7 @@
 import os
 import sys
 import argparse
-from input_handling import ParameterParser
+from toollib.files import ParameterParser
 from collections import defaultdict
 
 def difference_append(args):

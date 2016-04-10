@@ -5,7 +5,7 @@ import sys
 import argparse
 import operator
 from decimal import Decimal,getcontext
-from input_handling import findNumber,ParameterParser
+from toollib.files import findNumber,ParameterParser
 from collections import defaultdict
 
 def pdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=None, order='key', padding=[]):

@@ -5,8 +5,8 @@ import sys
 import random
 import argparse
 import traceback
-from input_handling import findNumber
-from group import Group,run_grouping
+from toollib.files import findNumber
+from toollib.group import Group,run_grouping
 
 class SampleGroup(Group):
     def __init__(self, tup):

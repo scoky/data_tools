@@ -3,8 +3,8 @@
 import os
 import sys
 import argparse
-from input_handling import ParameterParser
-from group import Group,run_grouping
+from toollib.files import ParameterParser
+from toollib.group import Group,run_grouping
 
 class PairUniqueGroup(Group):
     def __init__(self, tup):

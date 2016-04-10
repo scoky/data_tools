@@ -5,8 +5,8 @@ import re
 import sys
 import argparse
 from decimal import Decimal
-from input_handling import findNumber,ParameterParser
-from group import Group,run_grouping
+from toollib.files import findNumber,ParameterParser
+from toollib.group import Group,run_grouping
 
 class Compute3Group(Group):
     def __init__(self, tup):

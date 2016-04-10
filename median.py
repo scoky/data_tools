@@ -5,8 +5,8 @@ import sys
 import argparse
 from decimal import Decimal
 from collections import defaultdict
-from input_handling import findNumber,ParameterParser
-from group import Group,run_grouping
+from toollib.files import findNumber,ParameterParser
+from toollib.group import Group,run_grouping
 
 class MedianGroup(Group):
     def __init__(self, tup):

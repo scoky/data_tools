@@ -3,7 +3,7 @@
 import os
 import sys
 import argparse
-from input_handling import findIPAddress,FileReader,Header
+from toollib.files import findIPAddress,FileReader,Header
 
 class IPRange(object):
     def __init__(self, start, end=None, mask=None):

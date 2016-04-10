@@ -5,9 +5,10 @@ import sys
 import math
 import argparse
 from collections import defaultdict
-from input_handling import findNumber,ParameterParser
-from group import Group,run_grouping
 from multiprocessing import Pool
+sys.path.insert(1, os.path.join(os.path.dirname(__file__), os.pardir))
+from toollib.files import findNumber,ParameterParser
+from toollib.group import Group,run_grouping
 
 def metric_hamming(s1, s2, state=None):
     #Return the Hamming distance between equal-length sequences

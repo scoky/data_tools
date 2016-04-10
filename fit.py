@@ -4,8 +4,8 @@ import os
 import sys
 import argparse
 import scipy.stats
-from input_handling import findNumber,FileReader,Header
-from group import Group,run_grouping
+from toollib.files import findNumber,FileReader,Header
+from toollib.group import Group,run_grouping
 
 DIST = [ "all", "alpha", "anglit", "arcsine", "beta", "betaprime", "bradford", "burr", "cauchy", "chi", "chi2", "cosine", 
     "dgamma", "dweibull", "erlang", "expon", "exponnorm", "exponweib", "exponpow", "f", "fatiguelife", "fisk", 

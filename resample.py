@@ -5,7 +5,7 @@ import sys
 import argparse
 import traceback
 from decimal import Decimal,InvalidOperation
-from group import Group,run_grouping
+from toollib.group import Group,run_grouping
 
 class ResampleGroup(Group):
     def __init__(self, tup):

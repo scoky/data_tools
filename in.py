@@ -3,7 +3,7 @@
 import os
 import sys
 import argparse
-from input_handling import ParameterParser,FileReader
+from toollib.files import ParameterParser,FileReader
 
 def compareIn(infile, outfile, columns, elements, testIn=True):
     for chunks in infile:

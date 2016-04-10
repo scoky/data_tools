@@ -4,8 +4,9 @@ import os
 import sys
 import argparse
 from collections import defaultdict
-from input_handling import ParameterParser
-from group import Group,run_grouping
+sys.path.insert(1, os.path.join(os.path.dirname(__file__), os.pardir))
+from toollib.files import ParameterParser
+from toollib.group import Group,run_grouping
 
 class BinGroup(Group):
     def __init__(self, tup):

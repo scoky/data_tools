@@ -3,8 +3,8 @@
 import os
 import sys
 import argparse
-from input_handling import FileReader,ParameterParser
-from group import Group,run_grouping
+from toollib.files import FileReader,ParameterParser
+from toollib.group import Group,run_grouping
 
 class PadGroup(Group):
     def __init__(self, tup):

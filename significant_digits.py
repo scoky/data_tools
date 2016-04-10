@@ -5,8 +5,8 @@ import sys
 import argparse
 import traceback
 from decimal import Decimal,getcontext
-from input_handling import findNumber
-from group import Group,UnsortedInputGrouper
+from toollib.files import findNumber
+from toollib.group import Group,UnsortedInputGrouper
 
 class SDGroup(Group):
     def __init__(self, tup):

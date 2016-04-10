@@ -5,8 +5,8 @@ import sys
 import argparse
 from decimal import Decimal
 from collections import defaultdict
-from input_handling import findNumber,ParameterParser
-from group import Group,run_grouping
+from toollib.files import findNumber,ParameterParser
+from toollib.group import Group,run_grouping
 
 DEFAULT_PCT = map(Decimal, ['0', '0.01', '0.25', '0.5', '0.75', '0.99', '1'])
 

@@ -3,9 +3,10 @@
 import os
 import sys
 import argparse
-from input_handling import ParameterParser
-from group import Group,run_grouping
 from collections import defaultdict
+sys.path.insert(1, os.path.join(os.path.dirname(__file__), os.pardir))
+from toollib.files import ParameterParser
+from toollib.group import Group,run_grouping
 
 class StackGroup(Group):
     def __init__(self, tup):

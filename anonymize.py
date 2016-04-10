@@ -4,8 +4,8 @@ import os
 import sys
 import argparse
 from collections import defaultdict
-from input_handling import ParameterParser,FileReader,FileWriter
-from group import Group,run_grouping
+from toollib.files import ParameterParser,FileReader,FileWriter
+from toollib.group import Group,run_grouping
 
 class AnonGroup(Group):
     def __init__(self, tup):

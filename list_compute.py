@@ -7,8 +7,8 @@ import argparse
 import traceback
 import math
 from decimal import Decimal
-from input_handling import findNumber,ParameterParser
-from group import Group,run_grouping
+from toollib.files import findNumber,ParameterParser
+from toollib.group import Group,run_grouping
         
 class ComputeListGroup(Group):
     def __init__(self, tup):
