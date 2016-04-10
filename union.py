@@ -3,7 +3,7 @@
 import os
 import sys
 import argparse
-from input_handling import ParameterParser
+from toollib.files import ParameterParser
 
 if __name__ == "__main__":
     pp = ParameterParser('Compute union of column(s)', columns = 0, infiles = '*', group = False, append = False, ordered = False)
