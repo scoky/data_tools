@@ -52,7 +52,7 @@ class PreMadGroup(Group):
 if __name__ == "__main__":
     pp = ParameterParser('Median absolute difference of a column', columns = 1, append = False, labels = [None])
     pp.parser.add_argument('-b', '--bin', default=None)
-    pp.parser.add_argument('-m', '--median', default=None)
+    pp.parser.add_argument('-m', '--median', default=None, help='precomputed median')
     args = pp.parseArgs()
     if not any(args.labels):
         args.labels = [args.column_name + '_mad']

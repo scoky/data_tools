@@ -67,7 +67,7 @@ class PairLastGroup(Group):
             args.outfile.write(self.tup + last + val)
 
 if __name__ == "__main__":
-    pp = ParameterParser('Compute all pairs of inputs', columns = '*', labels = [None], append = False)
+    pp = ParameterParser('Compute pairs of values in column(s)', columns = '*', labels = [None], append = False)
     pp.parser.add_argument('-m', '--method', choices=['all', 'unique', 'first', 'last', 'sequence'], default='unique')
     args = pp.parseArgs()
     if not any(args.labels):

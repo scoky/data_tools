@@ -60,7 +60,7 @@ class PreStdGroup(Group):
 if __name__ == "__main__":
     pp = ParameterParser('Standard deviation of a column', columns = 1, append = False, labels = [None])
     pp.parser.add_argument('-b', '--bin', default=None)
-    pp.parser.add_argument('-m', '--mean', default=None)
+    pp.parser.add_argument('-m', '--mean', default=None, help='precomputed mean')
     args = pp.parseArgs()
     if not any(args.labels):
         args.labels = [args.column_name + '_stddev']
