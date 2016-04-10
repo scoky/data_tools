@@ -58,7 +58,7 @@ class PreStdGroup(Group):
         args.outfile.write(self.tup + [stddev])
 
 if __name__ == "__main__":
-    pp = ParameterParser('User defined computation on a column', columns = 1, append = False, labels = [None])
+    pp = ParameterParser('Standard deviation of a column', columns = 1, append = False, labels = [None])
     pp.parser.add_argument('-b', '--bin', default=None)
     pp.parser.add_argument('-m', '--mean', default=None)
     args = pp.parseArgs()
