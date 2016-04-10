@@ -2,7 +2,6 @@
 
 import os
 import sys
-import argparse
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), os.pardir))
 from toollib.files import findNumber,ParameterParser
 from toollib.group import Group,run_grouping
