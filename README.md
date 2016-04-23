@@ -29,9 +29,9 @@ Examples:
 Additionally, log headers are supported with the --header option. If the option is provided, then column names may be specified instead of indices.
 A file with header looks like this:
 ```
-	column_one	column_two	column_three
-	1		2		Value
-	2		3		Value2
+	column_one column_two column_three
+	1          2          Value
+	2          3          Value2
 	...
 ```
 The delimiter between columns defaults to whitespace, but can be modified with the --delimiter option. 
