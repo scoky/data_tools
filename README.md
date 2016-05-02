@@ -36,5 +36,11 @@ A file with header looks like this:
 ```
 The delimiter between columns defaults to whitespace, but can be modified with the --delimiter option. 
 
+Header and delimiter may also be specified with environment variables:
+```
+	TOOLBOX_DELIMITER=,
+	TOOLBOX_HEADER=true
+```
+
 There are many more options and combinations of scripts to perform a wide variety of tasks.
 

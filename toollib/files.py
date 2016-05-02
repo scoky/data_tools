@@ -194,10 +194,12 @@ class FileReader:
 class ParameterParser:
     def __init__(self, descrip, infiles = 1, group = True, columns = 1, append = True, labels = None, ordered = True):
         self.parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=descrip)
-        if infiles == 1:
-            self.parser.add_argument('infile', nargs='?', default=sys.stdin)
+        if infiles == 0:
+            pass
+        elif infiles == 1:
+            self.parser.add_argument('infile', nargs='?', default=sys.stdin, help='use - for stdin')
         else:
-            self.parser.add_argument('infiles', nargs='*', default=[sys.stdin])
+            self.parser.add_argument('infiles', nargs='*', default=[sys.stdin], help='use - for stdin')
         self.parser.add_argument('outfile', nargs='?', default=sys.stdout)
         if group:
             self.parser.add_argument('-g', '--group', nargs='+', default=[], help='column(s) to group input by')
@@ -218,8 +220,8 @@ class ParameterParser:
         args = self.parser.parse_args()
         if hasattr(args, 'infile'):
             args.infile = FileReader(args.infile, args)
-        else:
-            args.infiles = [FileReader(infile, args) for infile in args.infiles]
+        elif hasattr(args, 'infiles'):
+            args.infiles = [FileReader(sys.stdin, args) if infile == '-' else FileReader(infile, args) for infile in args.infiles]
             args.infile = args.infiles[0]
         if hasattr(args, 'group'):
             args.group_names = args.infile.header.names(args.group)
