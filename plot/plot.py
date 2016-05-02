@@ -43,20 +43,19 @@ class Source(object):
             raise IndexError('No mapping for {0} in source!'.format(v))
             
 def mappings(args):
-    parts = (' '.join(args.mapping)).split('=')
-    maps = {}
+    try:
+        parts = (' '.join(args.mapping)).split('=')
+        maps = {}
 
-    i = 1
-    v = parts[0].strip()
-    v_last = None
-    while i < len(parts):
-        m, v_next = parts[i].rsplit(None, 1)
-        maps[v] = [None if m1.strip() == '' else m1.strip() for m1 in m.split(',')]
-        v_last = v
-        v = v_next
-        i += 1
-    maps[v_last].append(None if v.strip() == '' else v.strip())
-    return maps
+        v = parts[0].strip()
+        for part in parts[1:-1]:
+            m, v_next = part.rsplit(None, 1)
+            maps[v] = [None if m1.strip() == '' else m1.strip() for m1 in m.split(',')]
+            v = v_next.strip()
+        maps[v] = [None if m1.strip() == '' else m1.strip() for m1 in parts[-1].split(',')]
+        return maps
+    except Exception as e:
+        raise ValueError('Invalid mapping', e)
             
 def fmt(value, vtype, vformat):
     try:
