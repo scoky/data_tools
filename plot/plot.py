@@ -36,7 +36,7 @@ class PlotGroup(Group):
                 label = "{0}: {1}".format(args.current.label if args.current.label else '', ' '.join(self.tup))
                 obj.set_label(label)
             elif args.current.label:
-                obj.set_label(args.current.label)
+                #obj.set_label(args.current.label)
                 pass
             elif len(self.tup) > 0:
                 obj.set_label(' '.join(self.tup))
@@ -123,7 +123,7 @@ class PlotGroup(Group):
         if not hasattr(args, 'boxplotx'):
             args.boxplotx = 1
         box = args.ax.boxplot([fmt(y, args.ytype, args.yformat) for y in self.data['sample']],
-            args.boxplotx)
+            positions=[args.boxplotx])
         args.boxplotx += 1
         return box
 
