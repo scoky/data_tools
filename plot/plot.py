@@ -19,8 +19,8 @@ class PlotGroup(Group):
         self.data = {}
         for v in args.current.mapping:
             self.data[v] = []
-        if 'y' not in self.data or 'x' not in self.data:
-            raise ValueError('Missing required mapping x or y')
+        # if 'y' not in self.data or 'x' not in self.data:
+        #     raise ValueError('Missing required mapping x or y')
 
     def add(self, chunks):
         for v,c in args.current.mapping.iteritems():
@@ -37,6 +37,7 @@ class PlotGroup(Group):
                 obj.set_label(label)
             elif args.current.label:
                 obj.set_label(args.current.label)
+                pass
             elif len(self.tup) > 0:
                 obj.set_label(' '.join(self.tup))
 
@@ -119,7 +120,12 @@ class PlotGroup(Group):
         return line
 
     def plot_boxplot(self):
-        pass
+        if not hasattr(args, 'boxplotx'):
+            args.boxplotx = 1
+        box = args.ax.boxplot([fmt(y, args.ytype, args.yformat) for y in self.data['sample']],
+            args.boxplotx)
+        args.boxplotx += 1
+        return box
 
     def plot_ribbon(self):
         if 'yy' not in self.data:
