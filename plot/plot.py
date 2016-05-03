@@ -282,6 +282,7 @@ if __name__ == "__main__":
         s.size = args.size[i]
         args.current = s
         run_grouping(infile, PlotGroup, [], False)
+        infile.close()
 
     if args.xscale:
         args.ax.set_xscale(args.xscale)
