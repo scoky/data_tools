@@ -37,7 +37,10 @@ def fileRange(startFile, endFile):
 
 def openFile(filename, opts):
     if type(filename) is str:
-        return gzip.open(os.path.expanduser(filename), opts+'b') if filename.endswith('.gz') else open(os.path.expanduser(filename), opts)
+        if filename == '-':
+            return sys.stdin
+        else:
+            return gzip.open(os.path.expanduser(filename), opts+'b') if filename.endswith('.gz') else open(os.path.expanduser(filename), opts)
     elif type(filename) is file:
         return filename
     else:
@@ -192,15 +195,16 @@ class FileReader:
         self.close()
 
 class ParameterParser:
-    def __init__(self, descrip, infiles = 1, group = True, columns = 1, append = True, labels = None, ordered = True):
+    def __init__(self, descrip, infiles = 1, outfile = True, group = True, columns = 1, append = True, labels = None, ordered = True):
         self.parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=descrip)
         if infiles == 0:
             pass
         elif infiles == 1:
-            self.parser.add_argument('infile', nargs='?', default=sys.stdin, help='use - for stdin')
+            self.parser.add_argument('infile', nargs='?', default='-', help='use - for stdin')
         else:
-            self.parser.add_argument('infiles', nargs='*', default=[sys.stdin], help='use - for stdin')
-        self.parser.add_argument('outfile', nargs='?', default=sys.stdout)
+            self.parser.add_argument('infiles', nargs='*', default=['-'], help='use - for stdin')
+        if outfile:
+            self.parser.add_argument('outfile', nargs='?', default=sys.stdout)
         if group:
             self.parser.add_argument('-g', '--group', nargs='+', default=[], help='column(s) to group input by')
         if columns == 1:
@@ -221,7 +225,7 @@ class ParameterParser:
         if hasattr(args, 'infile'):
             args.infile = FileReader(args.infile, args)
         elif hasattr(args, 'infiles'):
-            args.infiles = [FileReader(sys.stdin, args) if infile == '-' else FileReader(infile, args) for infile in args.infiles]
+            args.infiles = [FileReader(infile, args) for infile in args.infiles]
             args.infile = args.infiles[0]
         if hasattr(args, 'group'):
             args.group_names = args.infile.header.names(args.group)
@@ -235,9 +239,10 @@ class ParameterParser:
         return args
         
     def getArgs(self, args):
-        if hasattr(args, 'infile'):
-            args.outfile = FileWriter(args.outfile, args.infile, args)
-        else:
-            args.outfile = FileWriter(args.outfile, None, args)
+        if hasattr(args, 'outfile'):
+            if hasattr(args, 'infile'):
+                args.outfile = FileWriter(args.outfile, args.infile, args)
+            else:
+                args.outfile = FileWriter(args.outfile, None, args)
         return args
 
