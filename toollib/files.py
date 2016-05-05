@@ -38,7 +38,7 @@ def fileRange(startFile, endFile):
 def openFile(filename, opts):
     if type(filename) is str:
         if filename == '-':
-            return sys.stdin
+            return sys.stdin if opts == 'r' else sys.stdout
         else:
             return gzip.open(os.path.expanduser(filename), opts+'b') if filename.endswith('.gz') else open(os.path.expanduser(filename), opts)
     elif type(filename) is file:
@@ -204,7 +204,7 @@ class ParameterParser:
         else:
             self.parser.add_argument('infiles', nargs='*', default=['-'], help='use - for stdin')
         if outfile:
-            self.parser.add_argument('outfile', nargs='?', default=sys.stdout)
+            self.parser.add_argument('outfile', nargs='?', default='-', help='use - for stdout')
         if group:
             self.parser.add_argument('-g', '--group', nargs='+', default=[], help='column(s) to group input by')
         if columns == 1:
