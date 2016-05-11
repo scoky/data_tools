@@ -25,6 +25,10 @@ Examples:
 ```
 	<file ./percentile.py -g Y -c X -p 0.05 0.5 0.95
 ```
+* Not satisfied with just numbers? Plot the data with:
+```
+	<file ./mode.py -g Y -c X | ./plot/plot.py --geom line --mapping x=0 y=1
+```
 
 Additionally, log headers are supported with the --header option. If the option is provided, then column names may be specified instead of indices.
 A file with header looks like this:

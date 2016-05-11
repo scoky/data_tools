@@ -13,112 +13,156 @@ from matplotlib.ticker import FormatStrFormatter
 from matplotlib.dates import DateFormatter
 from matplotlib.artist import setp
 
+def ColMaps(req = [], opt = []):
+  def hook(fn):
+    fn.required_mappings = req
+    fn.optional_mappings = opt
+    return fn
+  return hook
+
 class PlotGroup(Group):
     def __init__(self, tup):
         super(PlotGroup, self).__init__(tup)
         self.data = {}
         for v in args.current.mapping:
             self.data[v] = []
-        # if 'y' not in self.data or 'x' not in self.data:
-        #     raise ValueError('Missing required mapping x or y')
 
     def add(self, chunks):
         for v,c in args.current.mapping.iteritems():
             self.data[v].append(chunks[c])
 
     def done(self):
+        label = ''            
+        if args.current.label and len(self.tup) > 0:
+            label = "{0}: {1}".format(args.current.label if args.current.label else '', ' '.join(self.tup))
+        elif args.current.label:
+            label = args.current.label
+        elif len(self.tup) > 0:
+            label = ' '.join(self.tup)
+
         for geom in args.current.geom.split('+'):
             if not hasattr(self, 'plot_{0}'.format(geom)):
                 raise ValueError('Invalid geometry {0} specified'.format(geom))
-            obj = getattr(self, 'plot_{0}'.format(geom))()
+            f = getattr(self, 'plot_{0}'.format(geom))
+                
+            # Generate default appearance
+            kwargs = { 'label' : label }
+            if args.current.colour:
+                kwargs['color'] = args.current.colour
+            if args.current.alpha:
+                kwargs['alpha'] = args.current.alpha
 
-            if args.current.label and len(self.tup) > 0:
-                label = "{0}: {1}".format(args.current.label if args.current.label else '', ' '.join(self.tup))
-                obj.set_label(label)
-            elif args.current.label:
-                #obj.set_label(args.current.label)
-                pass
-            elif len(self.tup) > 0:
-                obj.set_label(' '.join(self.tup))
+            # Make sure all required mappings are present            
+            for m in getattr(f, 'required_mappings'):
+                if m not in self.data:
+                    raise ValueError('Missing required mapping {0}'.format(m))
+            # Add the optional mappings to the dictionary
+            for m in getattr(f, 'optional_mappings'):
+                if m in self.data:
+                    kwargs[m] = self.data[m]
+            f(kwargs)
 
-    def plot_line(self):
-        line, = args.ax.plot([fmt(x, args.xtype, args.xformat) for x in self.data['x']],
-            [fmt(y, args.ytype, args.yformat) for y in self.data['y']],
-            args.current.shape if args.current.shape else '-')
-        if args.current.colour:
-            line.set_color(args.current.colour)
+    @ColMaps(req = ['x', 'y'])
+    def plot_line(self, kwargs):
+        # For lines, size sets both linewidth and markersize
         if args.current.size:
-            setp(line, linewidth=args.current.size)
-            line.set_markersize(args.current.size)
-        if args.current.alpha:
-            line.set_alpha(args.current.alpha)
+            if 'linewidth' not in kwargs:
+                kwargs['linewidth'] = args.current.size
+            if 'markersize' not in kwargs:
+                kwargs['markersize'] = args.current.size
+
+        # Draw line
+        line = args.ax.plot([fmt(x, args.xtype, args.xformat) for x in self.data['x']],
+            [fmt(y, args.ytype, args.yformat) for y in self.data['y']],
+            args.current.shape if args.current.shape else '',
+            **kwargs)
+
         return line
 
-    def plot_errorbar(self):
+    @ColMaps(req = ['x', 'y'], opt = ['yhigh', 'ylow', 'ydelta'])
+    def plot_errorbar(self, kwargs):
         err = None
         if 'ylow' in self.data and 'yhigh' in self.data:
             err = [[fmt(y, args.ytype, args.yformat) for y in self.data['ylow']], [fmt(y, args.ytype, args.yformat) for y in self.data['yhigh']]]
+            del kwargs['ylow']
+            del kwargs['yhigh']
         elif 'ydelta' in self.data:
             err = [fmt(y, args.ytype, args.yformat) for y in self.data['ydelta']]
+            del kwargs['ydelta']
         else:
-            raise ValueError('Missing mapping for ylow and yhigh or ydelta')
-        line = args.ax.errorbar([fmt(x, args.xtype, args.xformat) for x in self.data['x']],
-            [fmt(y, args.ytype, args.yformat) for y in self.data['y']],
-            yerr = err, fmt = args.current.shape if args.current.shape else 'o')
-        if args.current.colour:
-            line.set_color(args.current.colour)
+            err = []
+
         if args.current.size:
-            setp(line, linewidth=args.current.size)
-            #line.set_markersize(args.current.size)
-            #setp(line, elinewidth=args.current.size)
-        return line
+            if 'linewidth' not in kwargs:
+                kwargs['linewidth'] = args.current.size
+            if 'elinewidth' not in kwargs:
+                kwargs['elinewidth'] = args.current.size
+            if 'markeredgewidth' not in kwargs:
+                kwargs['markeredgewidth'] = args.current.size
+            if 'markersize' not in kwargs:
+                kwargs['markersize'] = args.current.size
 
-    def plot_bar(self):
-        if not hasattr(args, 'baroffset'):
-            args.baroffset = 0
-        bars = args.ax.bar([fmt(x, args.xtype, args.xformat) + args.baroffset for x in self.data['x']],
-            [fmt(y, args.ytype, args.yformat) for y in self.data['y']])
+        # Draw error bars
+        bars = args.ax.errorbar([fmt(x, args.xtype, args.xformat) for x in self.data['x']],
+            [fmt(y, args.ytype, args.yformat) for y in self.data['y']],
+            yerr = err, 
+            fmt = args.current.shape if args.current.shape else '',
+            **kwargs)
 
-        for bar in bars:
-            if args.current.colour:
-                bar.set_color(args.current.colour)
-            if args.current.size:
-                setp(bar, width=args.current.size)
-            if args.current.alpha:
-                bar.set_alpha(args.current.alpha)
-        args.baroffset += bars[0].get_width()
         return bars
 
-    def plot_stackbar(self):
+    @ColMaps(req = ['x', 'y'])
+    def plot_bar(self, kwargs):
+        bars = self.plot_stackbar(kwargs)
+        args.baroffset += bars[0].get_width()
+        args.stackbottom = None
+        
+        return bars
+
+    @ColMaps(req = ['x', 'y'])
+    def plot_stackbar(self, kwargs):
+        if args.current.size:
+            kwargs['width'] = args.current.size
+
+        # Draw bars
+        if not hasattr(args, 'baroffset'):
+            args.baroffset = 0
+        if not hasattr(args, 'stackbottom'):
+            args.stackbottom = None
         y = np.array([fmt(y, args.ytype, args.yformat) for y in self.data['y']])
-        bars = args.ax.bar([fmt(x, args.xtype, args.xformat) for x in self.data['x']],
+        bars = args.ax.bar([fmt(x, args.xtype, args.xformat) + args.baroffset for x in self.data['x']],
             y,
-            bottom = args.stackbottom if hasattr(args, 'stackbottom') else None)
+            bottom = args.stackbottom,
+            **kwargs)
         # Save the bottom position for next data
-        if hasattr(args, 'stackbottom'):
+        if args.stackbottom is not None:
             args.stackbottom += y
         else:
             args.stackbottom = y
 
-        for bar in bars:
-            if args.current.colour:
-                bar.set_color(args.current.colour)
-            if args.current.size:
-                setp(bar, width=args.current.size)
-            if args.current.alpha:
-                bar.set_alpha(args.current.alpha)
         return bars
 
-    def plot_point(self):
-        if not args.current.shape:
-            args.current.shape = 'o'
-        return self.plot_line() # Lines and points are the same in matplotlib, shape is the only difference
+    @ColMaps(req = ['x', 'y'])
+    def plot_point(self, kwargs):
+        if args.current.size:
+            kwargs['s'] = args.current.size
+        if args.current.shape:
+            kwargs['marker'] = args.current.shape
 
-    def plot_step(self):
-        line = self.plot_line()
+        # Draw points
+        line = args.ax.scatter([fmt(x, args.xtype, args.xformat) for x in self.data['x']],
+            [fmt(y, args.ytype, args.yformat) for y in self.data['y']],
+            **kwargs)
+
+        return line
+
+    @ColMaps(req = ['x', 'y'])
+    def plot_step(self, kwargs):
+        line = self.plot_line(kwargs)
         line.set_drawstyle('steps')
         return line
 
+    @ColMaps(req = ['sample'])
     def plot_boxplot(self):
         if not hasattr(args, 'boxplotx'):
             args.boxplotx = 1
@@ -127,9 +171,8 @@ class PlotGroup(Group):
         args.boxplotx += 1
         return box
 
+    @ColMaps(req = ['x', 'y'], opt = ['yy'])
     def plot_ribbon(self):
-        if 'yy' not in self.data:
-            raise ValueError('Missing mapping for yy')
         ribbon = args.ax.fill_between([fmt(x, args.xtype, args.xformat) for x in self.data['x']],
             [fmt(y, args.ytype, args.yformat) for y in self.data['y']],
             [fmt(y, args.ytype, args.yformat) for y in self.data['yy']])
@@ -192,7 +235,7 @@ if __name__ == "__main__":
         ' If a variable does not apply to all sources, you can skip them with var=,,1 to indicate that column 1 of the third source maps to the variable.' + \
         ' If only a single column is specified, it will be applied to all sources.' + \
         ' The variables available depend on the geom(s) chosen.' + \
-        ' There is a special variable group that indicates grouping of input from a source into separate ')
+        ' There is a special variable group that indicates grouping of input from a single file into separate sources. ')
 
     pp.parser.add_argument('-x', '--xlabel', help='label for the x-axis')
     pp.parser.add_argument('--xrange', nargs=2, help='range for the x-axis')
@@ -217,15 +260,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('-t', '--title')
     pp.parser.add_argument('--fontsize', type=int)
     pp.parser.add_argument('--geom', default=['line'], nargs='+', help='How to plot the sources.' + \
-        ' Supported geometries with mappings include:' + \
-        ' line => x, y;' + \
-        ' errorbar => x, y, ydelta or ylow, yhigh;' + \
-        ' bar => x, y;' + \
-        ' stackbar => x, y;' + \
-        ' point => x, y;' + \
-        ' step => x, y;' + \
-        ' boxplot => sample;' + \
-        ' ribbon => x, y, yy.')
+        ' Use --geom help to display supported geometries and their mappings.')
     pp.parser.add_argument('--colour', nargs='+')
     pp.parser.add_argument('--shape', nargs='+')
     pp.parser.add_argument('--fill', nargs='+')
@@ -238,6 +273,19 @@ if __name__ == "__main__":
     pp.parser.add_argument('--flip', action='store_true', default=False, help='flip x and y (not implemented!)')
     args = pp.parseArgs()
     args = pp.getArgs(args)
+    
+    # Print help information about available geoms
+    if args.geom[0].lower() == 'help':
+        import inspect
+        for method_name,method in inspect.getmembers(PlotGroup, predicate = inspect.ismethod):
+            if method_name.startswith('plot_'):
+                geom = method_name.split('_', 1)[1]
+                opt = ''
+                if len(method.optional_mappings) > 0:
+                    opt = 'opt => {0}'.format(', '.join(method.optional_mappings))
+                print geom, ': req =>', ', '.join(method.required_mappings), opt
+        sys.exit()
+    
     # Validate inputs
     for attr in ['geom', 'sourcelabels', 'colour', 'shape', 'fill', 'alpha', 'size']:
         if getattr(args, attr) is None:
