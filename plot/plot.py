@@ -12,6 +12,7 @@ import numpy as np
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.dates import DateFormatter
 from matplotlib.artist import setp
+from itertools import izip
 
 def ColMaps(req = [], opt = []):
   def hook(fn):
@@ -32,7 +33,7 @@ class PlotGroup(Group):
             self.data[v].append(chunks[c])
 
     def done(self):
-        label = ''            
+        label = ''
         if args.current.label and len(self.tup) > 0:
             label = "{0}: {1}".format(args.current.label if args.current.label else '', ' '.join(self.tup))
         elif args.current.label:
@@ -44,7 +45,7 @@ class PlotGroup(Group):
             if not hasattr(self, 'plot_{0}'.format(geom)):
                 raise ValueError('Invalid geometry {0} specified'.format(geom))
             f = getattr(self, 'plot_{0}'.format(geom))
-                
+
             # Generate default appearance
             kwargs = { 'label' : label }
             if args.current.colour:
@@ -52,7 +53,7 @@ class PlotGroup(Group):
             if args.current.alpha:
                 kwargs['alpha'] = args.current.alpha
 
-            # Make sure all required mappings are present            
+            # Make sure all required mappings are present
             for m in getattr(f, 'required_mappings'):
                 if m not in self.data:
                     raise ValueError('Missing required mapping {0}'.format(m))
@@ -105,7 +106,7 @@ class PlotGroup(Group):
         # Draw error bars
         bars = args.ax.errorbar([fmt(x, args.xtype, args.xformat) for x in self.data['x']],
             [fmt(y, args.ytype, args.yformat) for y in self.data['y']],
-            yerr = err, 
+            yerr = err,
             fmt = args.current.shape if args.current.shape else '',
             **kwargs)
 
@@ -115,8 +116,8 @@ class PlotGroup(Group):
     def plot_bar(self, kwargs):
         bars = self.plot_stackbar(kwargs)
         args.baroffset += bars[0].get_width()
-        args.stackbottom = None
-        
+        args.stackbottom = {}
+
         return bars
 
     @ColMaps(req = ['x', 'y'])
@@ -128,17 +129,23 @@ class PlotGroup(Group):
         if not hasattr(args, 'baroffset'):
             args.baroffset = 0
         if not hasattr(args, 'stackbottom'):
-            args.stackbottom = None
+            args.stackbottom = {}
+
+        bottom = []
         y = np.array([fmt(y, args.ytype, args.yformat) for y in self.data['y']])
-        bars = args.ax.bar([fmt(x, args.xtype, args.xformat) + args.baroffset for x in self.data['x']],
-            y,
-            bottom = args.stackbottom,
+        x = np.array([fmt(x, args.xtype, args.xformat) + args.baroffset for x in self.data['x']])
+        # Set the bottom position for this data and save the bottom position for the next
+        for xx,yy in izip(x,y):
+          if xx in args.stackbottom:
+            bottom.append(args.stackbottom[xx])
+            args.stackbottom[xx] += yy
+          else:
+            bottom.append(fmt(None, args.ytype, args.yformat))
+            args.stackbottom[xx] = yy
+
+        bars = args.ax.bar(x, y,
+            bottom = bottom,
             **kwargs)
-        # Save the bottom position for next data
-        if args.stackbottom is not None:
-            args.stackbottom += y
-        else:
-            args.stackbottom = y
 
         return bars
 
@@ -163,23 +170,27 @@ class PlotGroup(Group):
         return line
 
     @ColMaps(req = ['sample'])
-    def plot_boxplot(self):
+    def plot_boxplot(self, kwargs):
         if not hasattr(args, 'boxplotx'):
             args.boxplotx = 1
         box = args.ax.boxplot([fmt(y, args.ytype, args.yformat) for y in self.data['sample']],
-            positions=[args.boxplotx])
+            positions=[args.boxplotx],
+            **kwargs)
         args.boxplotx += 1
         return box
 
     @ColMaps(req = ['x', 'y'], opt = ['yy'])
-    def plot_ribbon(self):
+    def plot_ribbon(self, kwargs):
+        y = [fmt(yi, args.ytype, args.yformat) for yi in self.data['y']]
+        if 'yy' in self.data:
+            yy = [fmt(yi, args.ytype, args.yformat) for yi in self.data['yy']]
+            del kwargs['yy']
+        else:
+            yy = [0]*len(y)
+
         ribbon = args.ax.fill_between([fmt(x, args.xtype, args.xformat) for x in self.data['x']],
-            [fmt(y, args.ytype, args.yformat) for y in self.data['y']],
-            [fmt(y, args.ytype, args.yformat) for y in self.data['yy']])
-        if args.current.colour:
-            ribbon.set_color(args.current.colour)
-        if args.current.alpha:
-            ribbon.set_alpha(args.current.alpha)
+            y, yy,
+            **kwargs)
         return ribbon
 
 class Source(object):
@@ -212,13 +223,22 @@ def mappings(args):
 def fmt(value, vtype, vformat):
     try:
         if vtype == 'int':
+          if value is None:
+            return 0
+          else:
             return int(value)
         elif vtype == 'float':
+          if value is None:
+            return 0.0
+          else:
             return float(value)
         elif vtype == 'datetime':
+          if value is None:
+            return datetime.min
+          else:
             return datetime.strptime(value, vformat)
     except Exception as e:
-        raise ValueError('Input value error ({0} {1] {2])'.format(value, vtype, vformat), e)
+        raise ValueError('Input value error ({0} {1} {2})'.format(value, vtype, vformat), e)
 
 def tick_fmt(vtype, vformat):
     if vtype == 'int' or vtype == 'float':
@@ -273,7 +293,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('--flip', action='store_true', default=False, help='flip x and y (not implemented!)')
     args = pp.parseArgs()
     args = pp.getArgs(args)
-    
+
     # Print help information about available geoms
     if args.geom[0].lower() == 'help':
         import inspect
@@ -285,7 +305,7 @@ if __name__ == "__main__":
                     opt = 'opt => {0}'.format(', '.join(method.optional_mappings))
                 print geom, ': req =>', ', '.join(method.required_mappings), opt
         sys.exit()
-    
+
     # Validate inputs
     for attr in ['geom', 'sourcelabels', 'colour', 'shape', 'fill', 'alpha', 'size']:
         if getattr(args, attr) is None:
