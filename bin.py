@@ -52,6 +52,7 @@ if __name__ == "__main__":
         cls = BinGroup
     else:
         args.fuzz = eval(args.fuzz)
+        cls = BinGroup
     if args.similar:
         args.similar = eval(args.similar)
         cls = SimilarGroup

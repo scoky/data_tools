@@ -166,7 +166,8 @@ class PlotGroup(Group):
     @ColMaps(req = ['x', 'y'])
     def plot_step(self, kwargs):
         line = self.plot_line(kwargs)
-        line.set_drawstyle('steps')
+        for l in line:
+            l.set_drawstyle('steps')
         return line
 
     @ColMaps(req = ['sample'])
