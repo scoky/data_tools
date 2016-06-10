@@ -365,7 +365,7 @@ if __name__ == "__main__":
         args.ax.xaxis.set_major_formatter(tick_fmt(args.xtype, args.xtickformat))
 
     if args.yscale:
-        args.ax.set_yscale(args.yscale)
+        args.ax.set_yscale(args.yscale, nonposy='clip')
     if args.ymajorticks:
         args.ax.set_yticks([fmt(y, args.ytype, args.yformat) for y in args.ymajorticks])
         if args.ymajorticklabels:
