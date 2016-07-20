@@ -13,6 +13,7 @@ from matplotlib.ticker import FormatStrFormatter
 from matplotlib.dates import DateFormatter
 from matplotlib.artist import setp
 from itertools import izip
+from datetime import datetime
 
 def ColMaps(req = [], opt = []):
   def hook(fn):
