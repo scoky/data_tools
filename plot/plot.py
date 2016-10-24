@@ -49,9 +49,9 @@ class PlotGroup(Group):
 
             # Generate default appearance
             kwargs = { 'label' : label }
-            if args.current.colour:
+            if args.current.colour is not None:
                 kwargs['color'] = args.current.colour
-            if args.current.alpha:
+            if args.current.alpha is not None:
                 kwargs['alpha'] = args.current.alpha
 
             # Make sure all required mappings are present
@@ -63,6 +63,7 @@ class PlotGroup(Group):
                 if m in self.data:
                     kwargs[m] = self.data[m]
             f(kwargs)
+            args.plotted_items += 1
 
     @ColMaps(req = ['x', 'y'])
     def plot_line(self, kwargs):
@@ -283,6 +284,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('--geom', default=['line'], nargs='+', help='How to plot the sources.' + \
         ' Use --geom help to display supported geometries and their mappings.')
     pp.parser.add_argument('--colour', nargs='+')
+    pp.parser.add_argument('--colourmap', default=None, nargs=2, help='map name / number of colours to select')
     pp.parser.add_argument('--shape', nargs='+')
     pp.parser.add_argument('--fill', nargs='+')
     pp.parser.add_argument('--alpha', nargs='+', type=float)
@@ -295,6 +297,7 @@ if __name__ == "__main__":
     args = pp.parseArgs()
     args = pp.getArgs(args)
 
+    args.plotted_items = 0
     # Print help information about available geoms
     if args.geom[0].lower() == 'help':
         import inspect
@@ -337,6 +340,8 @@ if __name__ == "__main__":
         args.fig.autofmt_xdate()
     if args.ytype == 'datetime':
         args.fig.autofmt_xdate()
+    if args.colourmap is not None:
+        args.ax.set_color_cycle(plt.get_cmap(args.colourmap[0])(np.linspace(0,1,int(args.colourmap[1]))))
 
     # Process sources in order
     for i,infile in enumerate(args.infiles):
