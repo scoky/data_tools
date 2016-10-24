@@ -249,9 +249,8 @@ def tick_fmt(vtype, vformat):
         return DateFormatter(vformat)
 
 if __name__ == "__main__":
-    pp = ParameterParser('Plot input files', infiles = '*', append = False, columns = 0, group = False, ordered = False)
+    pp = ParameterParser('Plot input files', infiles = '*', append = False, columns = 0, group = True, ordered = False)
     pp.parser.add_argument('-l', '--sourcelabels', nargs='+', help='labels for each source file in order')
-    pp.parser.add_argument('-g', '--groups', nargs='+', help='columns in the sources that group (not implemented!)')
     pp.parser.add_argument('-m', '--mapping', nargs='+', default='x=0 y=1', help='Mapping of columns in input files to plotting variables.' + \
         ' Can specify rows for multiple sources with the syntax var=0,1 where the column 0 refers to the first source and column 1 refers to the second source.' + \
         ' If a variable does not apply to all sources, you can skip them with var=,,1 to indicate that column 1 of the third source maps to the variable.' + \
@@ -351,7 +350,7 @@ if __name__ == "__main__":
         s.alpha = args.alpha[i]
         s.size = args.size[i]
         args.current = s
-        run_grouping(infile, PlotGroup, [], False)
+        run_grouping(infile, PlotGroup, args.group, False)
         infile.close()
 
     if args.xscale:
