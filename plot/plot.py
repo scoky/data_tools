@@ -22,6 +22,54 @@ def ColMaps(req = [], opt = []):
     return fn
   return hook
 
+class LineStyles:
+  def __init__(self):
+    self.styles = ['-', '--', '-.', ':']
+    self.i = -1
+
+  def reset(self):
+    self.i = -1
+
+  def __iter__(self):
+    return self
+
+  def next(self):
+    self.i = (self.i + 1) % len(self.styles)
+    return self.styles[self.i]
+
+class MarkerStyles:
+  def __init__(self, styles = None):
+    if styles is None:
+      self.styles = ['o', 's', 'd', 'D', '>', '<', '^', 'v']
+    else:
+      self.styles = styles
+    self.i = -1
+
+  def reset(self):
+    self.i = -1
+
+  def __iter__(self):
+    return self
+
+  def next(self):
+    self.i = (self.i + 1) % len(self.styles)
+    return self.styles[self.i]
+
+class Colours:
+  def __init__(self, count = 7):
+    self.styles = cm.rainbow(np.linspace(0, 1, count))
+    self.i = -1
+
+  def reset(self):
+    self.i = -1
+
+  def __iter__(self):
+    return self
+
+  def next(self):
+    self.i = (self.i + 1) % len(self.styles)
+    return self.styles[self.i]
+
 class PlotGroup(Group):
     def __init__(self, tup):
         super(PlotGroup, self).__init__(tup)
@@ -51,6 +99,8 @@ class PlotGroup(Group):
             kwargs = { 'label' : label }
             if args.current.colour is not None:
                 kwargs['color'] = args.current.colour
+            else:
+                kwargs['color'] = args.colours.next()
             if args.current.alpha is not None:
                 kwargs['alpha'] = args.current.alpha
 
@@ -296,6 +346,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('--flip', action='store_true', default=False, help='flip x and y (not implemented!)')
     args = pp.parseArgs()
     args = pp.getArgs(args)
+    args.colours = Colours()
 
     args.plotted_items = 0
     # Print help information about available geoms
