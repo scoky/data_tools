@@ -12,6 +12,7 @@ import numpy as np
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.dates import DateFormatter
 from matplotlib.artist import setp
+from matplotlib.pyplot import cm
 from itertools import izip
 from datetime import datetime
 
