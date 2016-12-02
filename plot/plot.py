@@ -344,6 +344,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('--filename', default='Pyplot.pdf')
     pp.parser.add_argument('--nolegend', action='store_true', default=False)
     pp.parser.add_argument('--legendposition', type=int)
+    pp.parser.add_argument('--legendfontsize')
     pp.parser.add_argument('--flip', action='store_true', default=False, help='flip x and y (not implemented!)')
     args = pp.parseArgs()
     args = pp.getArgs(args)
@@ -433,6 +434,6 @@ if __name__ == "__main__":
         args.ax.yaxis.set_major_formatter(tick_fmt(args.ytype, args.ytickformat))
 
     if not args.nolegend:
-        plt.legend(loc = args.legendposition if args.legendposition is not None else 0)
+        plt.legend(loc = args.legendposition if args.legendposition is not None else 0, fontsize = args.legendfontsize)
     # Save plot
     plt.savefig(args.filename)
