@@ -433,6 +433,6 @@ if __name__ == "__main__":
         args.ax.yaxis.set_major_formatter(tick_fmt(args.ytype, args.ytickformat))
 
     if not args.nolegend:
-        plt.legend(loc = args.legendposition if args.legendposition is not None else None)
+        plt.legend(loc = args.legendposition if args.legendposition is not None else 0)
     # Save plot
     plt.savefig(args.filename)
