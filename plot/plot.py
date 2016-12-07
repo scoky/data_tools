@@ -60,7 +60,7 @@ class Colours:
   def __init__(self, count = 15, shift = 4):
     self.count = count
     self.shift = shift
-    self.styles = cm.gist_rainbow(np.linspace(0, 1, self.count))
+    self.styles = cm.rainbow(np.linspace(0, 1, self.count))
     self.i = 0 - self.shift
 
   def reset(self):
@@ -351,6 +351,8 @@ if __name__ == "__main__":
     args = pp.parseArgs()
     args = pp.getArgs(args)
     args.colours = Colours()
+    args.markers = MarkerStyles()
+    args.lines = LineStyles()
 
     args.plotted_items = 0
     # Print help information about available geoms
@@ -394,7 +396,7 @@ if __name__ == "__main__":
     if args.xtype == 'datetime':
         args.fig.autofmt_xdate()
     if args.ytype == 'datetime':
-        args.fig.autofmt_xdate()
+        args.fig.autofmt_ydate()
     if args.colourmap is not None:
         args.ax.set_color_cycle(plt.get_cmap(args.colourmap[0])(np.linspace(0,1,int(args.colourmap[1]))))
 
