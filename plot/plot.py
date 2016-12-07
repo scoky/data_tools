@@ -57,18 +57,20 @@ class MarkerStyles:
     return self.styles[self.i]
 
 class Colours:
-  def __init__(self, count = 7):
-    self.styles = cm.rainbow(np.linspace(0, 1, count))
-    self.i = -1
+  def __init__(self, count = 15, shift = 4):
+    self.count = count
+    self.shift = shift
+    self.styles = cm.gist_rainbow(np.linspace(0, 1, self.count))
+    self.i = 0 - self.shift
 
   def reset(self):
-    self.i = -1
+    self.i = 0 - self.shift
 
   def __iter__(self):
     return self
 
   def next(self):
-    self.i = (self.i + 1) % len(self.styles)
+    self.i = (self.i + self.shift) % len(self.styles)
     return self.styles[self.i]
 
 class PlotGroup(Group):
