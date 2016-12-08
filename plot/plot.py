@@ -23,55 +23,35 @@ def ColMaps(req = [], opt = []):
     return fn
   return hook
 
-class LineStyles:
-  def __init__(self):
-    self.styles = ['-', '--', '-.', ':']
-    self.i = -1
-
-  def reset(self):
-    self.i = -1
-
-  def __iter__(self):
-    return self
-
-  def next(self):
-    self.i = (self.i + 1) % len(self.styles)
-    return self.styles[self.i]
-
-class MarkerStyles:
-  def __init__(self, styles = None):
-    if styles is None:
-      self.styles = ['o', 's', 'd', 'D', '>', '<', '^', 'v']
-    else:
-      self.styles = styles
-    self.i = -1
-
-  def reset(self):
-    self.i = -1
-
-  def __iter__(self):
-    return self
-
-  def next(self):
-    self.i = (self.i + 1) % len(self.styles)
-    return self.styles[self.i]
-
-class Colours:
-  def __init__(self, count = 15, shift = 4):
-    self.count = count
+class LoopIterator(object):
+  def __init__(self, items, shift = 1):
+    self.items = items
     self.shift = shift
-    self.styles = cm.rainbow(np.linspace(0, 1, self.count))
     self.i = 0 - self.shift
-
+    self._enable = True
   def reset(self):
-    self.i = 0 - self.shift
-
+    self.i = -1
+  def enable(self):
+    self._enable = True
   def __iter__(self):
     return self
-
   def next(self):
-    self.i = (self.i + self.shift) % len(self.styles)
-    return self.styles[self.i]
+    if self._enable:
+      self.i = (self.i + self.shift) % len(self.items)
+      self._enable = False
+    return self.items[self.i]
+
+class LineStyles(LoopIterator):
+  def __init__(self, styles = ['-', '--', '-.', ':']):
+    super(LineStyles, self).__init__(items = styles)
+
+class MarkerStyles(LoopIterator):
+  def __init__(self, styles = ['o', 's', 'd', 'D', '>', '<', '^', 'v']):
+    super(MarkerStyles, self).__init__(items = styles)
+
+class Colours(LoopIterator):
+  def __init__(self, palette = 'rainbow', count = 15, shift = 4):
+    super(Colours, self).__init__(items = getattr(cm, palette)(np.linspace(0, 1, count)), shift = shift)
 
 class PlotGroup(Group):
     def __init__(self, tup):
@@ -86,26 +66,40 @@ class PlotGroup(Group):
 
     def done(self):
         label = ''
-        if args.current.label and len(self.tup) > 0:
-            label = "{0}: {1}".format(args.current.label if args.current.label else '', ' '.join(self.tup))
-        elif args.current.label:
-            label = args.current.label
+        if args.sourcelabels:
+          args.sourcelabels.enable()
+          label = args.sourcelabels.next()
+          if len(self.tup) > 0:
+            label = "{0}: {1}".format(label, ' '.join(self.tup))
         elif len(self.tup) > 0:
             label = ' '.join(self.tup)
 
-        for geom in args.current.geom.split('+'):
+        # Allow advancement
+        if args.colours:
+          args.colours.enable()
+        if args.alpha:
+          args.alpha.enable()
+        if args.size:
+          args.size.enable()
+        if args.lines:
+          args.lines.enable()
+        if args.markers:
+          args.markers.enable()
+        if args.fill:
+          args.fill.enable()
+
+        args.geom.enable()
+        for geom in args.geom.next().split('+'):
             if not hasattr(self, 'plot_{0}'.format(geom)):
                 raise ValueError('Invalid geometry {0} specified'.format(geom))
             f = getattr(self, 'plot_{0}'.format(geom))
 
             # Generate default appearance
             kwargs = { 'label' : label }
-            if args.current.colour is not None:
-                kwargs['color'] = args.current.colour
-            else:
+            if args.colours is not None:
                 kwargs['color'] = args.colours.next()
-            if args.current.alpha is not None:
-                kwargs['alpha'] = args.current.alpha
+            if args.alpha is not None:
+                kwargs['alpha'] = args.alpha.next()
 
             # Make sure all required mappings are present
             for m in getattr(f, 'required_mappings'):
@@ -121,16 +115,19 @@ class PlotGroup(Group):
     @ColMaps(req = ['x', 'y'])
     def plot_line(self, kwargs):
         # For lines, size sets both linewidth and markersize
-        if args.current.size:
+        if args.size:
             if 'linewidth' not in kwargs:
-                kwargs['linewidth'] = args.current.size
+                kwargs['linewidth'] = args.size.next()
             if 'markersize' not in kwargs:
-                kwargs['markersize'] = args.current.size
+                kwargs['markersize'] = args.size.next()
+        if args.lines:
+          kwargs['linestyle'] = args.lines.next()
+        if args.markers:
+          kwargs['marker'] = args.markers.next()
 
         # Draw line
         line = args.ax.plot([fmt(x, args.xtype, args.xformat) for x in self.data['x']],
             [fmt(y, args.ytype, args.yformat) for y in self.data['y']],
-            args.current.shape if args.current.shape else '',
             **kwargs)
 
         return line
@@ -148,21 +145,25 @@ class PlotGroup(Group):
         else:
             err = []
 
-        if args.current.size:
+        if args.size:
+            s = args.size.next()
             if 'linewidth' not in kwargs:
-                kwargs['linewidth'] = args.current.size
+                kwargs['linewidth'] = s
             if 'elinewidth' not in kwargs:
-                kwargs['elinewidth'] = args.current.size
+                kwargs['elinewidth'] = s
             if 'markeredgewidth' not in kwargs:
-                kwargs['markeredgewidth'] = args.current.size
+                kwargs['markeredgewidth'] = s
             if 'markersize' not in kwargs:
-                kwargs['markersize'] = args.current.size
+                kwargs['markersize'] = s
+        if args.lines:
+          kwargs['linestyle'] = args.lines.next()
+        if args.markers:
+          kwargs['marker'] = args.markers.next()
 
         # Draw error bars
         bars = args.ax.errorbar([fmt(x, args.xtype, args.xformat) for x in self.data['x']],
             [fmt(y, args.ytype, args.yformat) for y in self.data['y']],
             yerr = err,
-            fmt = args.current.shape if args.current.shape else '',
             **kwargs)
 
         return bars
@@ -177,8 +178,8 @@ class PlotGroup(Group):
 
     @ColMaps(req = ['x', 'y'])
     def plot_stackbar(self, kwargs):
-        if args.current.size:
-            kwargs['width'] = args.current.size
+        if args.size:
+            kwargs['width'] = args.size.next()
 
         # Draw bars
         if not hasattr(args, 'baroffset'):
@@ -206,10 +207,10 @@ class PlotGroup(Group):
 
     @ColMaps(req = ['x', 'y'])
     def plot_point(self, kwargs):
-        if args.current.size:
-            kwargs['s'] = args.current.size
-        if args.current.shape:
-            kwargs['marker'] = args.current.shape
+        if args.size:
+            kwargs['s'] = args.size.next()
+        if args.markers:
+            kwargs['marker'] = args.markers.next()
 
         # Draw points
         line = args.ax.scatter([fmt(x, args.xtype, args.xformat) for x in self.data['x']],
@@ -309,8 +310,7 @@ if __name__ == "__main__":
         ' Can specify rows for multiple sources with the syntax var=0,1 where the column 0 refers to the first source and column 1 refers to the second source.' + \
         ' If a variable does not apply to all sources, you can skip them with var=,,1 to indicate that column 1 of the third source maps to the variable.' + \
         ' If only a single column is specified, it will be applied to all sources.' + \
-        ' The variables available depend on the geom(s) chosen.' + \
-        ' There is a special variable group that indicates grouping of input from a single file into separate sources. ')
+        ' The variables available depend on the geom(s) chosen.')
 
     pp.parser.add_argument('-x', '--xlabel', help='label for the x-axis')
     pp.parser.add_argument('--xrange', nargs=2, help='range for the x-axis')
@@ -336,10 +336,11 @@ if __name__ == "__main__":
     pp.parser.add_argument('--fontsize', type=int)
     pp.parser.add_argument('--geom', default=['line'], nargs='+', help='How to plot the sources.' + \
         ' Use --geom help to display supported geometries and their mappings.')
-    pp.parser.add_argument('--colour', nargs='+')
-    pp.parser.add_argument('--colourmap', default=None, nargs=2, help='map name / number of colours to select')
-    pp.parser.add_argument('--shape', nargs='+')
-    pp.parser.add_argument('--fill', nargs='+')
+    pp.parser.add_argument('--colours', nargs='+', help='colors to rotate through')
+    pp.parser.add_argument('--colourmap', default='rainbow', help='rotate through the map. overridden by --colour')
+    pp.parser.add_argument('--lines', nargs='+', help='auto')
+    pp.parser.add_argument('--markers', nargs='+', help='auto')
+    pp.parser.add_argument('--fill', nargs='+', help='auto')
     pp.parser.add_argument('--alpha', nargs='+', type=float)
     pp.parser.add_argument('--size', nargs='+', type=float)
     pp.parser.add_argument('--canvas', nargs=2, type=float, help='Canvas width and height')
@@ -350,9 +351,28 @@ if __name__ == "__main__":
     pp.parser.add_argument('--flip', action='store_true', default=False, help='flip x and y (not implemented!)')
     args = pp.parseArgs()
     args = pp.getArgs(args)
-    args.colours = Colours()
-    args.markers = MarkerStyles()
-    args.lines = LineStyles()
+    if args.colours is None:
+      args.colours = Colours(args.colourmap)
+    else:
+      args.colours = LoopIterator(args.colours)
+    if args.markers is not None and len(args.markers) == 1 and args.markers[0] == 'auto':
+      args.markers = MarkerStyles()
+    elif args.markers is not None:
+      args.markers = LoopIterator(args.markers)
+    if args.lines is not None and len(args.lines) == 1 and args.lines[0] == 'auto':
+      args.lines = LineStyles()
+    elif args.lines is not None:
+      args.lines = LoopIterator(args.lines)
+    if args.fill is not None and len(args.fill) == 1 and args.fill[0] == 'auto':
+      args.fill = Colours(args.colourmap)
+    elif args.fill is not None:
+      args.fill = LoopIterator(args.fill)
+    if args.alpha is not None:
+      args.alpha = LoopIterator(args.alpha)
+    if args.size is not None:
+      args.size = LoopIterator(args.size)
+    if args.sourcelabels is not None:
+      args.sourcelabels = LoopIterator(args.sourcelabels)
 
     args.plotted_items = 0
     # Print help information about available geoms
@@ -366,15 +386,16 @@ if __name__ == "__main__":
                     opt = 'opt => {0}'.format(', '.join(method.optional_mappings))
                 print geom, ': req =>', ', '.join(method.required_mappings), opt
         sys.exit()
+    args.geom = LoopIterator(args.geom)
 
     # Validate inputs
-    for attr in ['geom', 'sourcelabels', 'colour', 'shape', 'fill', 'alpha', 'size']:
-        if getattr(args, attr) is None:
-            setattr(args, attr, [None] * len(args.infiles))
-        elif len(getattr(args, attr)) == 1:
-            setattr(args, attr, getattr(args, attr) * len(args.infiles))
-        elif len(getattr(args, attr)) != len(args.infiles):
-            raise ValueError('Wrong number of mappings specified for {0}'.format(attr))
+    # for attr in ['geom', 'sourcelabels', 'colour', 'shape', 'fill', 'alpha', 'size']:
+    #     if getattr(args, attr) is None:
+    #         setattr(args, attr, [None] * len(args.infiles))
+    #     elif len(getattr(args, attr)) == 1:
+    #         setattr(args, attr, getattr(args, attr) * len(args.infiles))
+    #     elif len(getattr(args, attr)) != len(args.infiles):
+    #         raise ValueError('Wrong number of mappings specified for {0}'.format(attr))
     args.mapping = mappings(args)
 
     # Create the plot
@@ -397,20 +418,20 @@ if __name__ == "__main__":
         args.fig.autofmt_xdate()
     if args.ytype == 'datetime':
         args.fig.autofmt_ydate()
-    if args.colourmap is not None:
-        args.ax.set_color_cycle(plt.get_cmap(args.colourmap[0])(np.linspace(0,1,int(args.colourmap[1]))))
+    # if args.colourmap is not None:
+    #     args.ax.set_color_cycle(plt.get_cmap(args.colourmap[0])(np.linspace(0,1,int(args.colourmap[1]))))
 
     # Process sources in order
     for i,infile in enumerate(args.infiles):
         s = Source(infile)
         s.mapping = {v : infile.header.index(args.mapping[v][i]) for v in args.mapping if args.mapping[v][i] is not None}
-        s.geom = args.geom[i]
-        s.label = args.sourcelabels[i]
-        s.colour = args.colour[i]
-        s.shape = args.shape[i]
-        s.fill = args.fill[i]
-        s.alpha = args.alpha[i]
-        s.size = args.size[i]
+        # s.geom = args.geom[i]
+        # s.label = args.sourcelabels[i]
+        # s.colour = args.colour[i]
+        # s.shape = args.shape[i]
+        # s.fill = args.fill[i]
+        # s.alpha = args.alpha[i]
+        # s.size = args.size[i]
         args.current = s
         run_grouping(infile, PlotGroup, args.group, False)
         infile.close()
