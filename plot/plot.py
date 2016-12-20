@@ -293,7 +293,7 @@ def fmt(value, vtype, vformat):
           if value is None:
             return datetime.min
           elif vformat is None:
-            return datetime.fromtimestamp(float(value))
+            return datetime.utcfromtimestamp(float(value))
           else:
             return datetime.strptime(value, vformat)
     except Exception as e:
