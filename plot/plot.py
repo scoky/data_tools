@@ -292,10 +292,12 @@ def fmt(value, vtype, vformat):
         elif vtype == 'datetime':
           if value is None:
             return datetime.min
+          elif vformat is None:
+            return datetime.fromtimestamp(float(value))
           else:
             return datetime.strptime(value, vformat)
     except Exception as e:
-        raise ValueError('Input value error ({0} {1} {2})'.format(value, vtype, vformat), e)
+        raise ValueError('Input value error (value={0}, type={1}, format={2})'.format(value, vtype, vformat), e)
 
 def tick_fmt(vtype, vformat):
     if vtype == 'int' or vtype == 'float':
