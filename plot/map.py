@@ -56,7 +56,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('--mode', default='auto', choices=['auto', 'markers', 'regions', 'text'])
     pp.parser.add_argument('--trigger', default='focus', choices=['none', 'focus', 'selection'], help='trigger for displaying tooltips')
     pp.parser.add_argument('--color-codes', default=[0, 1], nargs=2, type=int, help='range of values in color input')
-    pp.parser.add_argument('--color-range', default=['#FF0000', '#00FF00'], nargs=2, type=int, help='range of colors to display')
+    pp.parser.add_argument('--color-range', default=['#FF0000', '#00FF00'], nargs=2, help='range of colors to display')
     pp.parser.add_argument('--canvas', nargs=2, type=int, default=[500,300], help='canvas width and height in pixels')
     args = pp.parseArgs()
     if not any(args.labels):
