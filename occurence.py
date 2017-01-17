@@ -27,10 +27,10 @@ class OccurGroup(Group):
             args.outfile.write(self.last)
 
 if __name__ == "__main__":
-    pp = ParameterParser('Output the first/last occurance of a group', columns = False, append = False, ordered = False)
+    pp = ParameterParser('Output the first/last occurance of a group', columns = False, append = False, ordered = True)
     pp.parser.add_argument('-o', '--order', nargs='+', default=['first'], choices=['first', 'last'])
     args = pp.parseArgs()
     args.append = True
     args = pp.getArgs(args)
 
-    run_grouping(args.infile, OccurGroup, args.group, False)
+    run_grouping(args.infile, OccurGroup, args.group, args.ordered)
