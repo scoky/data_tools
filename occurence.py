@@ -17,6 +17,8 @@ class OccurGroup(Group):
 
     def addFirst(self, chunks):
         args.outfile.write(chunks)
+        if args.duplicate:
+            self.last = chunks
         self.add = self.addNothing
         
     def addNothing(self, chunks):
@@ -29,6 +31,7 @@ class OccurGroup(Group):
 if __name__ == "__main__":
     pp = ParameterParser('Output the first/last occurance of a group', columns = False, append = False, ordered = True)
     pp.parser.add_argument('-o', '--order', nargs='+', default=['first'], choices=['first', 'last'])
+    pp.parser.add_argument('-d', '--duplicate', action='store_true', default=False, help='if order is first and last and there is only 1 group member, print same line twice')
     args = pp.parseArgs()
     args.append = True
     args = pp.getArgs(args)
