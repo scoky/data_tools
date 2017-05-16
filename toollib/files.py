@@ -245,4 +245,3 @@ class ParameterParser:
             else:
                 args.outfile = FileWriter(args.outfile, None, args)
         return args
-
