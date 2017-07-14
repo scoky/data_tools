@@ -238,6 +238,11 @@ class PlotGroup(Group):
         args.boxplotx += 1
         return box
 
+    def plot_ribbonstack(self, kwargs):
+        if not hasattr(args, 'ribbonbottom'):
+          args.ribbonbottom
+        ribbon = self.plot_ribbon(kwargs):
+
     @ColMaps(req = ['x', 'y'], opt = ['yy'])
     def plot_ribbon(self, kwargs):
         y = [fmt(yi, args.ytype, args.yformat) for yi in self.data['y']]
