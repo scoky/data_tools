@@ -241,7 +241,7 @@ class PlotGroup(Group):
     def plot_ribbonstack(self, kwargs):
         if not hasattr(args, 'ribbonbottom'):
           args.ribbonbottom
-        ribbon = self.plot_ribbon(kwargs):
+        ribbon = self.plot_ribbon(kwargs)
 
     @ColMaps(req = ['x', 'y'], opt = ['yy'])
     def plot_ribbon(self, kwargs):
