@@ -37,8 +37,8 @@ class KMaxGroup(Group):
             heappop(self.maxes)
 
     def done(self):
-        for v in sorted(self.maxes):
-            args.outfile.write(self.tup + [v])
+        for i,v in enumerate(reversed(sorted(self.maxes))):
+            args.outfile.write(self.tup + [v, i+1])
 
 if __name__ == "__main__":
     pp = ParameterParser('Compute maximum of column', columns = 1, labels = [None])
@@ -48,6 +48,8 @@ if __name__ == "__main__":
         args.labels = [args.column_name + '_max']
     if args.append:
         args.labels = []
+    if args.k > 1:
+        args.labels.append('k')
     args = pp.getArgs(args)
 
     if args.k > 1:

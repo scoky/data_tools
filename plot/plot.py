@@ -186,6 +186,8 @@ class PlotGroup(Group):
             args.baroffset = 0
         if not hasattr(args, 'stackbottom'):
             args.stackbottom = {}
+        if 'color' in kwargs:
+            kwargs['edgecolor'] = kwargs['color']
 
         bottom = []
         y = np.array([fmt(y, args.ytype, args.yformat) for y in self.data['y']])

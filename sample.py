@@ -32,13 +32,19 @@ class SampleGroup(Group):
                 else:
                     args.outfile.write(self.tup + [val])
         else:
-            for val in random.sample(self.row, args.number):
+            for val in self.sample(self.row, args.number):
                 if args.append:
                     i = random.choice(range(len(self.rows[val])))
                     args.outfile.write(self.rows[val][i])
                     del self.rows[val][i]
                 else:
                     args.outfile.write(self.tup + [val])
+
+    def sample(self, rows, number):
+        if number >= len(rows):
+            return rows
+        else:
+            return random.sample(rows, number)
 
 if __name__ == "__main__":
     pp = ParameterParser('Sample rows from file', columns = 1)
