@@ -29,7 +29,7 @@ def ecdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=No
     else:
         addFunc = getOneNumber
 
-    bins = defaultdict(int)
+    bins = defaultdict(Decimal)
     total = 0
 
     for chunks in infile:
@@ -64,7 +64,7 @@ def getNumber(vals, col, quant):
     return findNumber(vals[col]) + zero
 
 def getBinNumber(vals, col):
-    return int(vals[col])
+    return findNumber(vals[col])
 def getOneNumber(vals, col):
     return 1
 

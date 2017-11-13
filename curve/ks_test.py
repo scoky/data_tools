@@ -4,7 +4,8 @@ import os
 import sys
 import argparse
 import traceback
-from group import Group,UnsortedInputGrouper
+sys.path.insert(1, os.path.join(os.path.dirname(__file__), os.pardir))
+from toollib.group import Group,UnsortedInputGrouper
 import scipy.stats as ss
 
 class KSGroup(Group):

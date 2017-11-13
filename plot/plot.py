@@ -225,7 +225,7 @@ class PlotGroup(Group):
     def plot_step(self, kwargs):
         line = self.plot_line(kwargs)
         for l in line:
-            l.set_drawstyle('steps')
+            l.set_drawstyle('steps-post')
         return line
 
     @ColMaps(req = ['sample'])
@@ -470,4 +470,5 @@ if __name__ == "__main__":
     if not args.nolegend:
         plt.legend(loc = args.legendposition if args.legendposition is not None else 0, fontsize = args.legendfontsize)
     # Save plot
+    plt.grid(True)
     plt.savefig(args.filename)
