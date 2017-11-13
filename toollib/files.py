@@ -15,7 +15,10 @@ def findNumber(value):
     try:
         return Decimal(value)
     except InvalidOperation:
-        return Decimal(number_pattern.search(value.replace(',', '')).group())
+        try:
+            return Decimal(number_pattern.search(value.replace(',', '')).group())
+        except AttributeError:
+            raise Exception('Value "{0}" does not contain a number'.format(value))
 
 def concatFiles(files, opts='r'):
     for f in files:
