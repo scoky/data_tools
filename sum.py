@@ -12,7 +12,7 @@ class SumGroup(Group):
         self.sums = [0]*len(args.columns)
 
     def add(self, chunks):
-        for i,c in args.columns:
+        for i,c in enumerate(args.columns):
             self.sums[i] += findNumber(chunks[c])
 
     def done(self):
