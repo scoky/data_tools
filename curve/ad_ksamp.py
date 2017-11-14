@@ -5,7 +5,8 @@ import sys
 import argparse
 import traceback
 import random
-from group import Group,UnsortedInputGrouper
+sys.path.insert(1, os.path.join(os.path.dirname(__file__), os.pardir))
+from toollib.group import Group,UnsortedInputGrouper
 from scipy.stats import anderson_ksamp
 
 confidence = [25, 10, 5, 2.5, 1]
