@@ -47,7 +47,7 @@ class GeometricGroup(Group):
             self.count[i] += b
 
     def done(self):
-        args.outfile.write(self.tup + [pow(s, 1 / c) for s,c zip(self.sums, self.count)])
+        args.outfile.write(self.tup + [pow(s, 1 / c) for s,c in zip(self.sums, self.count)])
 
 if __name__ == "__main__":
     pp = ParameterParser('Compute mean of columns', columns = '*', labels = [None])
@@ -57,8 +57,8 @@ if __name__ == "__main__":
     if not any(args.labels):
         args.labels = [cn + ('_gmean' if args.geometric else '_mean') for cn in args.columns_names]
     args = pp.getArgs(args)
-    if args.bin is not None:
-        args.bin = args.infile.header.indexes(args.bin)
+    if args.bins is not None:
+        args.bins = args.infile.header.indexes(args.bins)
 
     if args.geometric:
         cls = GeometricGroup
