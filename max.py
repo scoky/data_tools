@@ -11,8 +11,8 @@ from heapq import heappush, heappop
 class MaxGroup(Group):
     def __init__(self, tup):
         super(MaxGroup, self).__init__(tup)
-        self.maxes = [Decimal('-Inf')]*args.columns
-        self.rows = [None]*args.columns
+        self.maxes = [Decimal('-Inf')]*len(args.columns)
+        self.rows = [None]*len(args.columns)
 
     def add(self, chunks):
         for i,c in enumerate(args.columns):
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('-k', '--k', type = int, default = 1, help = 'find the k maximum values')
     args = pp.parseArgs()
     if not any(args.labels):
-        args.labels = [cn + '_max' for cn in args.column_names]
+        args.labels = [cn + '_max' for cn in args.columns_names]
     if args.append:
         args.labels = []
     if args.k > 1:
