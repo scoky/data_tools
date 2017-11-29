@@ -24,7 +24,7 @@ class MaxGroup(Group):
     def done(self):
         if args.append:
             for r in self.rows:
-                args.outfile.write(self.rows)
+                args.outfile.write(r)
         else:
             args.outfile.write(self.tup + self.maxes)
 
