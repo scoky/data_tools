@@ -73,6 +73,7 @@ class PlotGroup(Group):
             label = "{0}: {1}".format(label, ' '.join(self.tup))
         elif len(self.tup) > 0:
             label = ' '.join(self.tup)
+        args.labels.append(label)
 
         # Allow advancement
         if args.colours:
@@ -382,6 +383,7 @@ if __name__ == "__main__":
       args.size = LoopIterator(args.size)
     if args.sourcelabels is not None:
       args.sourcelabels = LoopIterator(args.sourcelabels)
+    args.labels = []
 
     args.plotted_items = 0
     # Print help information about available geoms
@@ -468,7 +470,9 @@ if __name__ == "__main__":
         args.ax.yaxis.set_major_formatter(tick_fmt(args.ytype, args.ytickformat))
 
     if not args.nolegend:
-        plt.legend(loc = args.legendposition if args.legendposition is not None else 0, fontsize = args.legendfontsize)
+        arts, lbls = args.ax.get_legend_handles_labels()
+        arts_o = [arts[lbls.index(l)] for l in args.labels]
+        plt.legend(arts_o, args.labels, loc = args.legendposition if args.legendposition is not None else 0, fontsize = args.legendfontsize)
     # Save plot
     plt.grid(True)
     plt.savefig(args.filename)
