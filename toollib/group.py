@@ -48,13 +48,15 @@ class UnsortedInputGrouper(object):
         self.group_cls = group_cls
 
     def group(self):
+        ordered = []
         for chunks in self.infile:
             tup = [chunks[g] for g in self.group_cols]
             key = tuple(tup)
             if key not in self.dict:
                 self.dict[key] = self.group_cls(tup)
+                ordered.append(self.dict[key])
             self.dict[key].add(chunks)
-        for value in self.dict.itervalues():
+        for value in ordered:
             value.done()
             
 def run_grouping(infile, group_cls=Group, group_cols=[0], ordered=False):
@@ -68,5 +70,3 @@ def run_grouping(infile, group_cls=Group, group_cols=[0], ordered=False):
             g.done()
     else:
         UnsortedInputGrouper(infile, group_cls, group_cols).group()
-
-
