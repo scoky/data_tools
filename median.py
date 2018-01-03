@@ -11,20 +11,22 @@ from toollib.group import Group,run_grouping
 class MedianGroup(Group):
     def __init__(self, tup):
         super(MedianGroup, self).__init__(tup)
-        self.rows = defaultdict(int)
+        self.rows = [defaultdict(int) for c in args.columns]
         self.add = self.addBin if args.bin else self.addVal
 
     def addVal(self, chunks):
-        val = findNumber(chunks[args.column])
-        self.rows[val] += 1
+        for i,c in enumerate(args.columns):
+            val = findNumber(chunks[c])
+            self.rows[i][val] += 1
         
     def addBin(self, chunks):
-        val = findNumber(chunks[args.column])
-        b = findNumber(chunks[args.bin])
-        self.rows[val] += b
+        for i,c in enumerate(args.columns):
+            val = findNumber(chunks[c])
+            b = findNumber(chunks[args.bin])
+            self.rows[i][val] += b
 
     def done(self):
-        args.outfile.write(self.tup + [computePercentile(self.rows)])
+        args.outfile.write(self.tup + [computePercentile(r) for r in self.rows])
 
 def computePercentile(r, p=Decimal('0.5')):
     position = (sum(r.itervalues()) + 1) * p
@@ -48,11 +50,11 @@ def computePercentile(r, p=Decimal('0.5')):
         return prev
 
 if __name__ == "__main__":
-    pp = ParameterParser('Compute median of a column', columns = 1, append = False, labels = [None])
+    pp = ParameterParser('Compute median of a column', columns = '*', append = False, labels = [None])
     pp.parser.add_argument('-b', '--bin', default=None)
     args = pp.parseArgs()
     if not any(args.labels):
-        args.labels = [args.column_name + '_median']
+        args.labels = [cn + '_median' for cn in args.columns_names]
     args = pp.getArgs(args)
     args.bin = args.infile.header.index(args.bin)
 
