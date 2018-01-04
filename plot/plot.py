@@ -239,7 +239,9 @@ class PlotGroup(Group):
         args.boxplotx += 1
         return box
 
+    @ColMaps(req = ['x', 'y'], opt = ['yy'])
     def plot_ribbonstack(self, kwargs):
+        raise Exception('Not Implemented!')
         if not hasattr(args, 'ribbonbottom'):
           args.ribbonbottom
         ribbon = self.plot_ribbon(kwargs)

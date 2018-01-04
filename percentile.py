@@ -13,20 +13,25 @@ DEFAULT_PCT = map(Decimal, ['0', '0.01', '0.25', '0.5', '0.75', '0.99', '1'])
 class PercentileGroup(Group):
     def __init__(self, tup):
         super(PercentileGroup, self).__init__(tup)
-        self.vals = defaultdict(int)
+        self.vals = [defaultdict(int) for c in args.columns]
         self.add = self.addBin if args.bin else self.addVal
 
     def addVal(self, chunks):
-        val = findNumber(chunks[args.column])
-        self.vals[val] += 1
+        for i,c in enumerate(args.columns):
+            val = findNumber(chunks[c])
+            self.vals[i][val] += 1
 
     def addBin(self, chunks):
-        val = findNumber(chunks[args.column])
-        b = findNumber(chunks[args.bin])
-        self.vals[val] += b
+        for i,c in enumerate(args.columns):
+            val = findNumber(chunks[c])
+            b = findNumber(chunks[args.bin])
+            self.vals[i][val] += b
 
     def done(self):
-        args.outfile.write(self.tup + list(computePercentile(self.vals, args.percentiles)))
+        output = self.tup
+        for v in self.vals:
+            output += list(computePercentile(v, args.percentiles))
+        args.outfile.write(output)
 
 def percentile(rows, pts=DEFAULT_PCT, columns=[0]):
     for c in columns:
@@ -62,15 +67,14 @@ def computePercentile(vals, pts=DEFAULT_PCT):
         ind += 1
 
 if __name__ == "__main__":
-    pp = ParameterParser('Compute percentiles from a column', columns = 1, append = False, labels = [None])
+    pp = ParameterParser('Compute percentiles from a column', columns = '*', append = False, labels = [None])
     pp.parser.add_argument('-b', '--bin', default=None)
     pp.parser.add_argument('-p', '--percentiles', nargs='+', type=Decimal, default=DEFAULT_PCT)
     args = pp.parseArgs()
     args.percentiles = sorted(args.percentiles)
     if not any(args.labels):
-        args.labels = ['{0}_ptile{1}'.format(args.column_name, p) for p in args.percentiles]
+        args.labels = ['{0}_ptile{1}'.format(cn, p) for cn in args.columns_names for p in args.percentiles]
     args = pp.getArgs(args)
     args.bin = args.infile.header.index(args.bin)
 
     run_grouping(args.infile, PercentileGroup, args.group, args.ordered)
-
