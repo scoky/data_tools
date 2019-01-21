@@ -56,6 +56,9 @@ def ecdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=No
     for key in keys:
         accum += bins[key]
         outfile.write([key, Decimal(accum) / total])
+    if len(keys) > 0:
+        outfile.write([keys[-1], 1])
+
         
 zero = Decimal(0)
 def getQuantNumber(vals, col, quant):
@@ -64,7 +67,7 @@ def getNumber(vals, col, quant):
     return findNumber(vals[col]) + zero
 
 def getBinNumber(vals, col):
-    return findNumber(vals[col])
+    return int(findNumber(vals[col]))
 def getOneNumber(vals, col):
     return 1
 

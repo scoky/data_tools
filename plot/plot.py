@@ -42,7 +42,7 @@ class LoopIterator(object):
     return self.items[self.i]
 
 class LineStyles(LoopIterator):
-  def __init__(self, styles = ['-', '--', '-.', ':']):
+  def __init__(self, styles = ['-', '--', '-.']):
     super(LineStyles, self).__init__(items = styles)
 
 class MarkerStyles(LoopIterator):
