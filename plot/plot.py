@@ -69,8 +69,8 @@ class PlotGroup(Group):
         if args.sourcelabels:
           args.sourcelabels.enable()
           label = args.sourcelabels.next()
-          if len(self.tup) > 0:
-            label = "{0}: {1}".format(label, ' '.join(self.tup))
+          # if len(self.tup) > 0:
+          #   label = "{0}: {1}".format(label, ' '.join(self.tup))
         elif len(self.tup) > 0:
             label = ' '.join(self.tup)
         args.labels.append(label)
