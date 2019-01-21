@@ -25,10 +25,8 @@ class EntropyGroup(Group):
         if args.pad is None or args.pad <= len(vals):
             e = entropy(vals, base = args.base)
         else:
-            e = entropy(np.append(vals, [0.0] * (args.pad - len(vals)), base = args.base)
-        mean = self.total / self.count
-        stddev = sqrt(sum(((val - mean)**2)*count for val,count in self.vals.iteritems()) / self.count)
-        args.outfile.write(self.tup + [stddev])
+            e = entropy(np.append(vals, [0.0] * (args.pad - len(vals)), base = args.base))
+        args.outfile.write(self.tup + [e])
 
 if __name__ == "__main__":
     pp = ParameterParser('Entropy of a column', columns = 1, append = False, labels = [None])
