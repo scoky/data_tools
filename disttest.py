@@ -19,12 +19,17 @@ class DistGroup(Group):
         self.vals.append(val)
 
     def done(self):
+        import numpy as np
+        vals = np.array(self.vals)
         from scipy.stats import chisquare
-        args.outfile.write(self.tup + list(chisquare(self.vals)))
+        if args.pad is not None and args.pad > len(vals):
+            vals = np.append(vals, [0.0] * (args.pad - len(vals)))
+        args.outfile.write(self.tup + list(chisquare(vals)))
 
 if __name__ == "__main__":
     pp = ParameterParser('Entropy of a column', columns = 1, append = False, labels = [None])
     pp.parser.add_argument('-d', '--dist', choices = ['chisquare'], default='chisquare', help='distribution test to run')
+    pp.parser.add_argument('-p', '--pad', type=int, default=None, help='pad to number of potential values')
     args = pp.parseArgs()
     if not any(args.labels):
         args.labels = [args.column_name + '_disttest']
