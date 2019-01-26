@@ -15,12 +15,12 @@ class DistGroup(Group):
         self.vals = []
 
     def add(self, chunks):
-        val = findNumber(chunks[args.column])
+        val = float(findNumber(chunks[args.column]))
         self.vals.append(val)
 
     def done(self):
         from scipy.stats import chisquare
-        args.outfile.write(self.tup + chisquare(vals))
+        args.outfile.write(self.tup + list(chisquare(self.vals)))
 
 if __name__ == "__main__":
     pp = ParameterParser('Entropy of a column', columns = 1, append = False, labels = [None])
