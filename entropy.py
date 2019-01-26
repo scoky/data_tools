@@ -31,7 +31,7 @@ class EntropyGroup(Group):
 if __name__ == "__main__":
     pp = ParameterParser('Entropy of a column', columns = 1, append = False, labels = [None])
     pp.parser.add_argument('-p', '--pad', type=int, default=None, help='pad to number of potential values')
-    pp.parser.add_argument('--base', type=float, default=None, help='pad to number of potential values')
+    pp.parser.add_argument('--base', type=float, default=None, help='entropy base (default is e)')
     args = pp.parseArgs()
     if not any(args.labels):
         args.labels = [args.column_name + '_entropy']
