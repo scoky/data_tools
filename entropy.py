@@ -11,21 +11,21 @@ from math import sqrt
 
 class EntropyGroup(Group):
     def __init__(self, tup):
-        super(StdGroup, self).__init__(tup)
+        super(EntropyGroup, self).__init__(tup)
         self.vals = []
 
     def add(self, chunks):
-        val = findNumber(chunks[args.column])
+        val = float(findNumber(chunks[args.column]))
         self.vals.append(val)
 
     def done(self):
         import numpy as np
-        vals = np.array(self.vals) / np.sum(vals)
+        vals = np.array(self.vals) / np.sum(self.vals)
         from scipy.stats import entropy
         if args.pad is None or args.pad <= len(vals):
             e = entropy(vals, base = args.base)
         else:
-            e = entropy(np.append(vals, [0.0] * (args.pad - len(vals)), base = args.base))
+            e = entropy(np.append(vals, [0.0] * (args.pad - len(vals))), base = args.base)
         args.outfile.write(self.tup + [e])
 
 if __name__ == "__main__":
@@ -36,7 +36,6 @@ if __name__ == "__main__":
     if not any(args.labels):
         args.labels = [args.column_name + '_entropy']
     args = pp.getArgs(args)
-    args.bin = args.infile.header.index(args.bin)
 
 
     run_grouping(args.infile, EntropyGroup, args.group, args.ordered)
