@@ -30,6 +30,7 @@ class DistGroup(Group):
             expect = (np.sum(expect) / expect) / np.sum(np.sum(expect) / expect)
         else:
             expect = expect / np.sum(expect)
+        expect = expect * np.sum(vals)
         if args.pad is not None and args.pad > len(vals):
             vals = np.append(vals, [0.0] * (args.pad - len(vals)))
             expect = np.append(expect, [0.0] * (args.pad - len(expect)))
