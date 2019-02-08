@@ -22,6 +22,7 @@ class FitGroup(Group):
         y = d[:,1]
         from scipy.optimize import curve_fit
         popt, pcov = curve_fit(args.function, x, y)
+        sys.stderr.write('{0} {1}\n'.format(popt, pcov))
         if args.range is None:
             x = np.linspace(x[0], x[-1], args.granularity)
         else:
