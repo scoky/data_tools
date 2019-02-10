@@ -40,4 +40,4 @@ if __name__ == "__main__":
         empty = [None] * columns
         for m in r:
             if m.data['count'] == 0:
-                args.outfile.write(columns + m.data['line'])
+                args.outfile.write(empty + m.data['line'])
