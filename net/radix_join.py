@@ -14,14 +14,14 @@ if __name__ == "__main__":
     pp.parser.add_argument('-j', '--join_method', choices=['inner', 'left_outer', 'outer'], default='inner', help='determines whether ips that do not match any cidr are dropped')
     args = pp.parseArgs()
     args = pp.getArgs(args)
-    args.cidrs_file = FileReader(args.cidrs_file, args)
-    args.cidr_field = args.cidrs_file.header.index(args.cidr_field)
+    args.prefix_file = FileReader(args.prefix_file, args)
+    args.prefix_index = args.prefix_file.header.index(args.prefix_index)
 
     import radix
     r = radix.Radix()
     columns = 0
-    for line in args.cidrs_file:
-        n = r.add(line[args.cidr_field])
+    for line in args.prefix_file:
+        n = r.add(line[args.prefix_index])
         n.data['line'] = line
         n.data['count'] = 0
         columns = max(columns, len(line))
