@@ -211,7 +211,7 @@ class PlotGroup(Group):
     @ColMaps(req = ['x', 'y'])
     def plot_point(self, kwargs):
         if args.size:
-            kwargs['s'] = args.size.next()
+            kwargs['s'] = kwargs['markersize'] = args.size.next()
         if args.markers:
             kwargs['marker'] = args.markers.next()
 
