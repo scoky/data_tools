@@ -7,72 +7,54 @@ import operator
 from decimal import Decimal,getcontext
 from toollib.files import findNumber,ParameterParser
 from collections import defaultdict
+from toollib.group import Group,run_grouping
 
-def ecdfFile(infile, outfile, column=0, quant=None, sigDigits=None, binColumn=None, padding=[]):
-    if len(padding) % 2 != 0:
-        raise Exception('Invalid padding!')
+class EcdfGroup(Group):
+    def __init__(self, tup):
+        super(EcdfGroup, self).__init__(tup)
+        self.bins = defaultdict(Decimal)
+        self.add = self.addVal if args.bin is None else self.addBin
+        self.total = 0
 
-    # Set precision
-    if sigDigits:
-        prevSigDigits = getcontext().prec
-        getcontext().prec = sigDigits
+    def addVal(self, chunks):
+        self.bins[args.getFunc(chunks, args.column, args.quantize)] += 1
+        self.total += 1
 
-    # Quantize input
-    if quant:
-        getFunc = getQuantNumber
-    else:
-        getFunc = getNumber
+    def addBin(self, chunks):
+        c = int(findNumber(chunks[args.bin]))
+        self.bins[args.getFunc(chunks, args.column, args.quantize)] += c
+        self.total += c
 
-    # Input is binned
-    if not binColumn is None:
-        addFunc = getBinNumber
-    else:
-        addFunc = getOneNumber
+    def done(self):
+        # Return to the default significant digits
+        if args.significantDigits:
+            getcontext().prec = args.prevSigDigits
+        # Insert padding
+        i = 0
+        while i+1 < len(args.padding):
+            # Add zero to make sure that the sig digits gets set correctly
+            self.bins[args.padding[i]+zero] += args.padding[i+1]
+            self.total += args.padding[i+1]
+            i += 2
 
-    bins = defaultdict(Decimal)
-    total = 0
+        accum = 0
+        keys = sorted(self.bins)
+        if len(keys) > 0:
+            args.outfile.write(self.tup + [keys[0], 0])
+        for key in keys:
+            accum += self.bins[key]
+            args.outfile.write(self.tup + [key, Decimal(accum) / self.total])
+        if len(keys) > 0:
+            args.outfile.write(self.tup + [keys[-1], 1])
 
-    for chunks in infile:
-        value = getFunc(chunks, column, quant)
-        count = addFunc(chunks, binColumn)
-        bins[value] += count
-        total += count
-
-    # Return to the default significant digits
-    if sigDigits:
-        getcontext().prec = prevSigDigits
-
-    # Insert padding
-    i = 0
-    while i+1 < len(padding):
-        bins[padding[i]+zero] += padding[i+1]
-        total += padding[i+1]
-        i += 2
-
-    accum = 0
-    keys = sorted(bins)
-    if len(keys) > 0:
-        outfile.write([keys[0], 0])
-    for key in keys:
-        accum += bins[key]
-        outfile.write([key, Decimal(accum) / total])
-    if len(keys) > 0:
-        outfile.write([keys[-1], 1])
-
-        
 zero = Decimal(0)
 def getQuantNumber(vals, col, quant):
     return findNumber(vals[col]).quantize(quant) + zero
 def getNumber(vals, col, quant):
     return findNumber(vals[col]) + zero
 
-def getBinNumber(vals, col):
-    return int(findNumber(vals[col]))
-def getOneNumber(vals, col):
-    return 1
-
 if __name__ == "__main__":
-    pp = ParameterParser('Compute pdf', columns = 1, labels = [None], append = False, group = False)
+    pp = ParameterParser('Compute pdf', columns = 1, labels = [None], append = False)
     pp.parser.add_argument('-b', '--bin', default=None, help='column containing bin counts')
     pp.parser.add_argument('-q', '--quantize', type=Decimal, default=None, help='fixed exponent')
     pp.parser.add_argument('-s', '--significantDigits', type=int, default=None, help='number of significant digits')
@@ -82,8 +64,18 @@ if __name__ == "__main__":
         args.labels = ['x', 'y']
     args = pp.getArgs(args)
     args.bin = args.infile.header.index(args.bin)
+    if len(args.padding) % 2 != 0:
+        raise Exception('Invalid padding!')
 
-    ecdfFile(args.infile, args.outfile, column=args.column, quant=args.quantize, sigDigits=args.significantDigits,\
-       binColumn=args.bin, padding=args.padding)
+    # Set precision
+    if args.significantDigits:
+        args.prevSigDigits = getcontext().prec
+        getcontext().prec = args.significantDigits
 
+    # Quantize input
+    if args.quantize:
+        args.getFunc = getQuantNumber
+    else:
+        args.getFunc = getNumber
 
+    run_grouping(args.infile, EcdfGroup, args.group, args.ordered)
