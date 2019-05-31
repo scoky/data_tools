@@ -46,7 +46,7 @@ class LineStyles(LoopIterator):
     super(LineStyles, self).__init__(items = styles)
 
 class HatchStyles(LoopIterator):
-    def __init__(self, styles = ["\\" , "/" , "+" , "-", ".", "*","x", "o", "O", "|" ]):
+    def __init__(self, styles = ["\\", "/", "x", "O", "+", "-", ".", "*", "o", "|"]):
       super(HatchStyles, self).__init__(items = styles)
 
 class MarkerStyles(LoopIterator):
