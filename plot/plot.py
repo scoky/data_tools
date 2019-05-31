@@ -45,6 +45,10 @@ class LineStyles(LoopIterator):
   def __init__(self, styles = ['-', '--', '-.']):
     super(LineStyles, self).__init__(items = styles)
 
+class HatchStyles(LoopIterator):
+    def __init__(self, styles = ["\\" , "/" , "+" , "-", ".", "*","x", "o", "O", "|" ]):
+      super(HatchStyles, self).__init__(items = styles)
+
 class MarkerStyles(LoopIterator):
   def __init__(self, styles = ['o', 's', 'd', 'D', '>', '<', '^', 'v']):
     super(MarkerStyles, self).__init__(items = styles)
@@ -88,6 +92,8 @@ class PlotGroup(Group):
           args.markers.enable()
         if args.fill:
           args.fill.enable()
+        if args.hatches:
+          args.hatches.enable()
 
         args.geom.enable()
         for geom in args.geom.next().split('+'):
@@ -187,8 +193,10 @@ class PlotGroup(Group):
             args.baroffset = 0
         if not hasattr(args, 'stackbottom'):
             args.stackbottom = {}
-        if 'color' in kwargs:
-            kwargs['edgecolor'] = kwargs['color']
+        if args.hatches:
+          kwargs['hatch'] = args.hatches.next()
+        # if 'color' in kwargs:
+        kwargs['edgecolor'] = 'black' #kwargs['color']
 
         bottom = []
         y = np.array([fmt(y, args.ytype, args.yformat) for y in self.data['y']])
@@ -352,6 +360,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('--colourmap', default='rainbow', help='rotate through the map. overridden by --colour')
     pp.parser.add_argument('--lines', nargs='+', help='auto')
     pp.parser.add_argument('--markers', nargs='+', help='auto')
+    pp.parser.add_argument('--hatches', nargs='+', help='auto')
     pp.parser.add_argument('--fill', nargs='+', help='auto')
     pp.parser.add_argument('--alpha', nargs='+', type=float)
     pp.parser.add_argument('--size', nargs='+', type=float)
@@ -383,6 +392,10 @@ if __name__ == "__main__":
       args.alpha = LoopIterator(args.alpha)
     if args.size is not None:
       args.size = LoopIterator(args.size)
+    if args.hatches is not None and len(args.hatches) == 1 and args.hatches[0] == 'auto':
+      args.hatches = HatchStyles()
+    elif args.hatches is not None:
+      args.hatches = LoopIterator(args.hatches)
     if args.sourcelabels is not None:
       args.sourcelabels = LoopIterator(args.sourcelabels)
     args.labels = []
