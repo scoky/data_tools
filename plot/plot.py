@@ -353,7 +353,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('--ytickformat', help='formatting for major y ticks')
 
     pp.parser.add_argument('-t', '--title')
-    pp.parser.add_argument('--fontsize', type=int)
+    pp.parser.add_argument('--fontsize', type=int, default=16)
     pp.parser.add_argument('--geom', default=['line'], nargs='+', help='How to plot the sources.' + \
         ' Use --geom help to display supported geometries and their mappings.')
     pp.parser.add_argument('--colours', nargs='+', help='colors to rotate through')
@@ -363,8 +363,8 @@ if __name__ == "__main__":
     pp.parser.add_argument('--hatches', nargs='+', help='auto')
     pp.parser.add_argument('--fill', nargs='+', help='auto')
     pp.parser.add_argument('--alpha', nargs='+', type=float)
-    pp.parser.add_argument('--size', nargs='+', type=float)
-    pp.parser.add_argument('--canvas', nargs=2, type=float, help='Canvas width and height')
+    pp.parser.add_argument('--size', nargs='+', type=float, default=4)
+    pp.parser.add_argument('--canvas', nargs=2, type=float, default=[8, 5.5], help='Canvas width and height')
     pp.parser.add_argument('--filename', default='Pyplot.pdf')
     pp.parser.add_argument('--nolegend', action='store_true', default=False)
     pp.parser.add_argument('--legendposition', type=int)
