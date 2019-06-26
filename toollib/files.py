@@ -121,7 +121,7 @@ class FileWriter:
                     self._header.addCols(reader.header.names(args.group))
             if hasattr(args, 'labels'):
                 self._header.addCols(args.labels)
-            
+
     @property
     def header(self):
         return self._header

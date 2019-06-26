@@ -30,11 +30,12 @@ def binify(val):
     return (val / args.bin).to_integral_exact(rounding=ROUND_FLOOR) * args.bin
 
 if __name__ == "__main__":
-    pp = ParameterParser('Compute pdf', columns = '*', labels = False, group = False, ordered = False, append = False)
+    pp = ParameterParser('Compute pdf', columns = '*', labels = [None], group = False, ordered = False, append = False)
     pp.parser.add_argument('-q', '--quantize', type=Decimal, default=None, help='fixed exponent (e.g., 10, 1, 0.1)')
     pp.parser.add_argument('-s', '--significantDigits', type=int, default=None, help='number of significant digits')
     pp.parser.add_argument('-b', '--bin', type=Decimal, default=None, help='fit into bins, applies the formula: f(x) = floor(x / b) * b')
     args = pp.parseArgs()
+    args.labels = []
     args = pp.getArgs(args)
     if args.significantDigits is not None:
         getcontext().prec = args.significantDigits
