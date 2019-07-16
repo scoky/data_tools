@@ -219,7 +219,7 @@ class PlotGroup(Group):
     @ColMaps(req = ['x', 'y'])
     def plot_point(self, kwargs):
         if args.size:
-            kwargs['s'] = kwargs['markersize'] = args.size.next()
+            kwargs['s'] = args.size.next()
         if args.markers:
             kwargs['marker'] = args.markers.next()
 
@@ -363,7 +363,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('--hatches', nargs='+', help='auto')
     pp.parser.add_argument('--fill', nargs='+', help='auto')
     pp.parser.add_argument('--alpha', nargs='+', type=float)
-    pp.parser.add_argument('--size', nargs='+', type=float, default=4)
+    pp.parser.add_argument('--size', nargs='+', type=float, default=[4])
     pp.parser.add_argument('--canvas', nargs=2, type=float, default=[8, 5.5], help='Canvas width and height')
     pp.parser.add_argument('--filename', default='Pyplot.pdf')
     pp.parser.add_argument('--nolegend', action='store_true', default=False)
