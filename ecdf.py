@@ -12,7 +12,7 @@ from toollib.group import Group,run_grouping
 class EcdfGroup(Group):
     def __init__(self, tup):
         super(EcdfGroup, self).__init__(tup)
-        self.bins = defaultdict(Decimal)
+        self.bins = defaultdict(int)
         self.add = self.addVal if args.bin is None else self.addBin
         self.total = 0
 
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('-b', '--bin', default=None, help='column containing bin counts')
     pp.parser.add_argument('-q', '--quantize', type=Decimal, default=None, help='fixed exponent')
     pp.parser.add_argument('-s', '--significantDigits', type=int, default=None, help='number of significant digits')
-    pp.parser.add_argument('-p', '--padding', nargs='+', type=Decimal, default=[], help='additional binned values to add. format: "value count"')
+    pp.parser.add_argument('-p', '--padding', nargs='+', type=float, default=[], help='additional binned values to add. format: "value count"')
     args = pp.parseArgs()
     if not any(args.labels):
         args.labels = ['x', 'y']
