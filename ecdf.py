@@ -21,7 +21,7 @@ class EcdfGroup(Group):
         self.total += 1
 
     def addBin(self, chunks):
-        c = int(findNumber(chunks[args.bin]))
+        c = float(findNumber(chunks[args.bin]))
         self.bins[args.getFunc(chunks, args.column, args.quantize)] += c
         self.total += c
 
@@ -37,13 +37,13 @@ class EcdfGroup(Group):
             self.total += args.padding[i+1]
             i += 2
 
-        accum = 0
+        accum = 0.0
         keys = sorted(self.bins)
         if len(keys) > 0:
             args.outfile.write(self.tup + [keys[0], 0])
         for key in keys:
             accum += self.bins[key]
-            args.outfile.write(self.tup + [key, Decimal(accum) / self.total])
+            args.outfile.write(self.tup + [key, accum / self.total])
         if len(keys) > 0:
             args.outfile.write(self.tup + [keys[-1], 1])
 
