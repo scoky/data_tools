@@ -268,6 +268,31 @@ class PlotGroup(Group):
             **kwargs)
         return ribbon
 
+    @ColMaps(req = ['x', 'y'], opt = ['c'])
+    def plot_hexbin(self, kwargs):
+        x = [fmt(xi, args.xtype, args.xformat) for xi in self.data['x']]
+        y = [fmt(yi, args.ytype, args.yformat) for yi in self.data['y']]
+        if args.xrange or args.yrange: # Filter down to datapoints in range
+            xy = [(xi,yi) for xi,yi in zip(x,y) if (not args.xrange or args.xrange[0] <= xi <= args.xrange[1]) and (not args.yrange or args.yrange[0] <= yi <= args.yrange[1])]
+            x = [xi for xi,yi in xy]
+            y = [yi for xi,yi in xy]
+        if 'c' in self.data:
+            c = [float(ci) for si in self.data['c']]
+            kwargs['reduce_C_function'] = np.sum # Color is sum of c values in hexbin
+            kwargs['C'] = c
+        if args.size:
+            kwargs['gridsize'] = int(100 - args.size.next() * 10 * 1.5) # Scale size parameter
+        kwargs['cmap'] = args.colourmap
+        kwargs['linewidths'] = 0.1 # Reduce line widths so that hexbins do not appear to 'overlap'
+        kwargs['xscale'] = args.xscale # Log/linear scale the hexbins
+        kwargs['yscale'] = args.yscale
+        kwargs['mincnt'] = 0.001 # Do not color empty hexbins
+        del kwargs['color'] # Sertting color causes hexbin lines to be visible
+        hexplot = args.ax.hexbin(x, y, **kwargs)
+        cb = args.fig.colorbar(hexplot, ax = args.ax)
+        cb.set_label('counts')
+        return hexplot
+
 class Source(object):
     def __init__(self, infile):
         self.infile = infile
@@ -435,11 +460,15 @@ if __name__ == "__main__":
     if args.xlabel:
         args.ax.set_xlabel(args.xlabel)
     if args.xrange:
-        plt.xlim([fmt(args.xrange[0], args.xtype, args.xformat), fmt(args.xrange[1], args.xtype, args.xformat)])
+        args.xrange = [fmt(args.xrange[0], args.xtype, args.xformat), fmt(args.xrange[1], args.xtype, args.xformat)]
+        plt.xlim(args.xrange)
+        args.ax.set_xlim(args.xrange)
     if args.ylabel:
         args.ax.set_ylabel(args.ylabel)
     if args.yrange:
-        plt.ylim([fmt(args.yrange[0], args.ytype, args.yformat), fmt(args.yrange[1], args.ytype, args.yformat)])
+        args.yrange = [fmt(args.yrange[0], args.ytype, args.yformat), fmt(args.yrange[1], args.ytype, args.yformat)]
+        plt.ylim(args.yrange)
+        args.ax.set_ylim(args.yrange)
     if args.xtype == 'datetime':
         args.fig.autofmt_xdate()
     if args.ytype == 'datetime':
