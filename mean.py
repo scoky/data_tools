@@ -53,24 +53,24 @@ class InvertedMeanGroup(Group):
     def __init__(self, tup):
         super(InvertedMeanGroup, self).__init__(tup)
         from collections import defaultdict
-        self.vals = [defaultdict(int) for _ in range(len(args.columns))]
+        self.vals = [[] for _ in range(len(args.columns))]
         self.add = self.addVal if args.bins is None else self.addBin
 
     def addVal(self, chunks):
-        from decimal import Decimal
         for i,c in enumerate(args.columns):
-            self.vals[i][findNumber(chunks[c])] += Decimal(1)
-        
+            v = findNumber(chunks[c])
+            self.vals[i].append((v, v))
+
     def addBin(self, chunks):
         for i,c in enumerate(args.columns):
-            self.vals[i][findNumber(chunks[c])] += findNumber(chunks[args.bins[i]])
+            self.vals[i].append((findNumber(chunks[c]), findNumber(chunks[args.bins[i]])))
 
     def done(self):
         import numpy as np
         m = []
         for val in self.vals:
-            s = [k for k in val.keys()]
-            c = np.array([val[k] for k in s])
+            s = [v[0] for v in val]
+            c = np.array([v[1] for v in val])
             w = (np.sum(c) / c) / np.sum(np.sum(c) / c)
             m.append(np.dot(s,w))
         args.outfile.write(self.tup + m)
