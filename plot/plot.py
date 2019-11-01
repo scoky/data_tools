@@ -298,7 +298,32 @@ class PlotGroup(Group):
         x = [fmt(xi, args.xtype, args.xformat) for xi in self.data['x']]
         y = [fmt(yi, args.ytype, args.yformat) for yi in self.data['y']]
         c = [float(ci) for ci in self.data['c']]
+        cd = { (xi,yi) : ci for xi,yi,ci in zip(x,y,c) }
+        matrix = []
+        xprev = yprev = None
+        xstep = ystep = None
+        for xi in sorted(set(x)):
+            if xprev is not None:
+                xstep = xi - xprev
+            xprev = xi
+            a = []
+            for yi in sorted(set(y)):
+                if yprev is not None:
+                    ystep = yi - yprev
+                yprev = yi
+                a.append((xi, yi, cd[(xi,yi)]))
+            a.append((xi, yi + ystep, 0))
+            matrix.append(a)
+        a = []
+        for yi in sorted(set(y)):
+            a.append((xi + xstep, yi, 0))
+        a.append((xi + xstep, yi + ystep, 0))
+        matrix.append(a)
+        x = np.array([[i[0] for i in a] for a in matrix])
+        y = np.array([[i[1] for i in a] for a in matrix])
+        c = np.array([[i[2] for i in a] for a in matrix])
         kwargs['cmap'] = args.colourmap
+        del kwargs['color']
         mesh = args.ax.pcolormesh(x, y, c, **kwargs)
         cb = args.fig.colorbar(mesh, ax = args.ax)
         cb.set_label(args.colourbarlabel)
@@ -394,7 +419,7 @@ if __name__ == "__main__":
         ' Use --geom help to display supported geometries and their mappings.')
     pp.parser.add_argument('--colours', nargs='+', help='colors to rotate through')
     pp.parser.add_argument('--colourmap', default='rainbow', help='rotate through the map. overridden by --colour')
-    pp.parser.add_argument('--colourbarlabel', help='label for the colour bar (if there is one)')
+    pp.parser.add_argument('--colourbarlabel', default='', help='label for the colour bar (if there is one)')
     pp.parser.add_argument('--lines', nargs='+', help='auto')
     pp.parser.add_argument('--markers', nargs='+', help='auto')
     pp.parser.add_argument('--hatches', nargs='+', help='auto')
