@@ -299,6 +299,7 @@ class PlotGroup(Group):
         y = [fmt(yi, args.ytype, args.yformat) for yi in self.data['y']]
         c = [float(ci) for ci in self.data['c']]
         cd = { (xi,yi) : ci for xi,yi,ci in zip(x,y,c) }
+        min_c = min(c) - 0.1
         matrix = []
         xprev = yprev = None
         xstep = ystep = None
@@ -311,17 +312,18 @@ class PlotGroup(Group):
                 if yprev is not None:
                     ystep = yi - yprev
                 yprev = yi
-                a.append((xi, yi, cd[(xi,yi)]))
-            a.append((xi, yi + ystep, 0))
+                a.append((xi, yi, cd[(xi,yi)] if (xi,yi) in cd else min_c))
+            a.append((xi, yi + ystep, min_c))
             matrix.append(a)
         a = []
         for yi in sorted(set(y)):
-            a.append((xi + xstep, yi, 0))
-        a.append((xi + xstep, yi + ystep, 0))
+            a.append((xi + xstep, yi, min_c))
+        a.append((xi + xstep, yi + ystep, min_c))
         matrix.append(a)
         x = np.array([[i[0] for i in a] for a in matrix])
         y = np.array([[i[1] for i in a] for a in matrix])
         c = np.array([[i[2] for i in a] for a in matrix])
+        c = np.ma.masked_less_equal(c, min_c)
         kwargs['cmap'] = args.colourmap
         del kwargs['color']
         mesh = args.ax.pcolormesh(x, y, c, **kwargs)
