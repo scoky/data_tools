@@ -287,11 +287,22 @@ class PlotGroup(Group):
         kwargs['xscale'] = args.xscale # Log/linear scale the hexbins
         kwargs['yscale'] = args.yscale
         kwargs['mincnt'] = 0.001 # Do not color empty hexbins
-        del kwargs['color'] # Sertting color causes hexbin lines to be visible
+        del kwargs['color'] # Setting color causes hexbin lines to be visible
         hexplot = args.ax.hexbin(x, y, **kwargs)
         cb = args.fig.colorbar(hexplot, ax = args.ax)
-        cb.set_label('counts')
+        cb.set_label(args.colourbarlabel)
         return hexplot
+
+    @ColMaps(req = ['x', 'y', 'c'])
+    def plot_mesh(self, kwargs):
+        x = [fmt(xi, args.xtype, args.xformat) for xi in self.data['x']]
+        y = [fmt(yi, args.ytype, args.yformat) for yi in self.data['y']]
+        c = [float(ci) for ci in self.data['c']]
+        kwargs['cmap'] = args.colourmap
+        mesh = args.ax.pcolormesh(x, y, c, **kwargs)
+        cb = args.fig.colorbar(mesh, ax = args.ax)
+        cb.set_label(args.colourbarlabel)
+        return mesh
 
 class Source(object):
     def __init__(self, infile):
@@ -383,6 +394,7 @@ if __name__ == "__main__":
         ' Use --geom help to display supported geometries and their mappings.')
     pp.parser.add_argument('--colours', nargs='+', help='colors to rotate through')
     pp.parser.add_argument('--colourmap', default='rainbow', help='rotate through the map. overridden by --colour')
+    pp.parser.add_argument('--colourbarlabel', help='label for the colour bar (if there is one)')
     pp.parser.add_argument('--lines', nargs='+', help='auto')
     pp.parser.add_argument('--markers', nargs='+', help='auto')
     pp.parser.add_argument('--hatches', nargs='+', help='auto')
