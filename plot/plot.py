@@ -326,6 +326,9 @@ class PlotGroup(Group):
         c = np.ma.masked_less_equal(c, min_c)
         kwargs['cmap'] = args.colourmap
         del kwargs['color']
+        if args.colourscale == 'log':
+            import matplotlib.colors as colors
+            kwargs['norm'] = colors.LogNorm()
         mesh = args.ax.pcolormesh(x, y, c, **kwargs)
         cb = args.fig.colorbar(mesh, ax = args.ax)
         cb.set_label(args.colourbarlabel)
@@ -422,6 +425,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('--colours', nargs='+', help='colors to rotate through')
     pp.parser.add_argument('--colourmap', default='rainbow', help='rotate through the map. overridden by --colour')
     pp.parser.add_argument('--colourbarlabel', default='', help='label for the colour bar (if there is one)')
+    pp.parser.add_argument('--colourscale', choices=['linear', 'log'])
     pp.parser.add_argument('--lines', nargs='+', help='auto')
     pp.parser.add_argument('--markers', nargs='+', help='auto')
     pp.parser.add_argument('--hatches', nargs='+', help='auto')
