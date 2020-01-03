@@ -196,7 +196,7 @@ class PlotGroup(Group):
         if args.hatches:
           kwargs['hatch'] = args.hatches.next()
         # if 'color' in kwargs:
-        kwargs['edgecolor'] = 'black' #kwargs['color']
+        kwargs['edgecolor'] = kwargs['color']
 
         bottom = []
         y = np.array([fmt(y, args.ytype, args.yformat) for y in self.data['y']])
@@ -562,4 +562,5 @@ if __name__ == "__main__":
         plt.legend(arts_o, args.labels, loc = args.legendposition if args.legendposition is not None else 0, fontsize = args.legendfontsize)
     # Save plot
     plt.grid(True)
+    plt.tight_layout()
     plt.savefig(args.filename)

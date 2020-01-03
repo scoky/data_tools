@@ -5,7 +5,9 @@ import sys
 import argparse
 import traceback
 import random
-from group import Group,UnsortedInputGrouper
+sys.path.insert(1, os.path.join(os.path.dirname(__file__), os.pardir))
+from toollib.group import Group,run_grouping
+from toollib.files import ParameterParser,findNumber
 from scipy.stats import ks_2samp
 
 class KSGroup(Group):
@@ -32,8 +34,6 @@ def KS_test(groups, outfile):
                 break
             for x,us in enumerate(u.samples):
                 for y,vs in enumerate(v.samples):
-                    if len(vs) < args.ignore or len(us) < args.ignore:
-                        continue
                     if j == i and y >= x:
                         break
                     if args.random != None:
@@ -42,31 +42,25 @@ def KS_test(groups, outfile):
                             res = ks_2samp(random.sample(us, args.subsample), random.sample(vs, args.subsample))
                             if res[0] < res[1]:
                                 verdict = True
-                            outfile.write(jdelim.join(u.tup + v.tup + map(str, res)) + '\n')
-                        outfile.write('Verdict:' + str(verdict) + '\n')
+                            outfile.write([jdelim.join(u.tup + v.tup + map(str, res)) + '\n'])
+                        outfile.write(['Verdict:' + str(verdict) + '\n'])
                     else:
                         res = ks_2samp(us, vs)
                         verdict = False
                         if res[0] < res[1]:
                             verdict = True
-                        outfile.write(jdelim.join(u.tup + v.tup + map(str, res)) + '\n')
-                        outfile.write('Verdict:' + str(verdict) + '\n')
+                        outfile.write([jdelim.join(u.tup + v.tup + map(str, res)) + '\n'])
+                        outfile.write(['Verdict:' + str(verdict) + '\n'])
 
 if __name__ == "__main__":
     # set up command line args
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Compare the request distributions of all clients')
-    parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
-    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-i', '--ignore', type=int, default=0, help='filter groups with less than threshold number of samples')
-    parser.add_argument('-c', '--columns', nargs='+', type=int, default=[1])
-    parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
-    parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-r', '--random', default=None, type=int, help='perform on r random subsamples')
-    parser.add_argument('-s', '--subsample', default=100, type=int, help='subsample size')
-    args = parser.parse_args()
+    pp = ParameterParser('Compute KS 2-sample', infiles = '*', columns = '*', append = False, labels = [None])
+    pp.parser.add_argument('-r', '--random', default=None, type=int, help='perform on r random subsamples')
+    pp.parser.add_argument('-s', '--subsample', default=100, type=int, help='subsample size')
+    args = pp.parseArgs()
+    args = pp.getArgs(args)
 
     args.groups = []
-    grouper = UnsortedInputGrouper(args.infile, KSGroup, args.group, args.delimiter)
-    grouper.group()
+    for infile in args.infiles:
+        run_grouping(infile, KSGroup, args.group, args.delimiter)
     KS_test(args.groups, args.outfile)
