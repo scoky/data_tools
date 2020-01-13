@@ -241,8 +241,11 @@ class PlotGroup(Group):
     def plot_boxplot(self, kwargs):
         if not hasattr(args, 'boxplotx'):
             args.boxplotx = 1
-        box = args.ax.boxplot([fmt(y, args.ytype, args.yformat) for y in self.data['sample']],
-            positions=[args.boxplotx],
+        del kwargs['color']
+        del kwargs['label']
+        kwargs['positions'] = [args.boxplotx]
+        kwargs['widths'] = 0.9
+        box = args.ax.boxplot([[fmt(y, args.ytype, args.yformat) for y in self.data['sample']]],
             **kwargs)
         args.boxplotx += 1
         return box
