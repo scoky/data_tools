@@ -42,8 +42,8 @@ if __name__ == "__main__":
     if not any(args.labels):
         args.labels = ['x', 'y']
     args = pp.getArgs(args)
-    args.x = args.infile.header.index(args.x)
-    args.y = args.infile.header.index(args.y)
+    args.xdata = args.infile.header.index(args.xdata)
+    args.ydata = args.infile.header.index(args.ydata)
     from scipy import interpolate
     import numpy as np
 
