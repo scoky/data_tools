@@ -3,10 +3,9 @@
 import os
 import sys
 import argparse
-import traceback
+sys.path.insert(1, os.path.join(os.path.dirname(__file__), os.pardir))
 from toollib.group import Group,run_grouping
-from scipy import interpolate
-import numpy as np
+from toollib.files import ParameterParser,findNumber
 
 class ResampleGroup(Group):
     def __init__(self, tup):
@@ -21,37 +20,33 @@ class ResampleGroup(Group):
     def done(self):
         fit = args.interpolatef(self.xpoints, self.ypoints)
         ynew = fit(args.xnew)
-        
-        prefix = ''
-        if len(self.tup) > 0:
-                prefix = args.jdelim.join(self.tup) + args.jdelim
         for x,y in zip(args.xnew, ynew):
-            args.outfile.write(prefix + str(x) + args.jdelim + str(y) + '\n')
+            args.outfile.write(self.tup + [x, y])
             
 def interp_linear(x, y):
+    from scipy import interpolate
     return interpolate.interp1d(x, y, kind=args.interpolate, copy=False)
 
 if __name__ == "__main__":
-    # set up command line args
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,\
-                                     description='Resample the data points with a different frequency')
-    parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
-    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-i', '--interpolate', choices=['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'spline'], default='linear')
-    parser.add_argument('-s', '--space', choices=['linear', 'log'], default='linear')
-    parser.add_argument('-b', '--begin', type=float, default=None, help='value to begin resampling at')
-    parser.add_argument('-t', '--terminate', type=float, default=None, help='value to terminate resampling at')
-    parser.add_argument('-n', '--number', type=int, default=10, help='total number of data points to sample')
-    parser.add_argument('-f', '--resample_file', type=argparse.FileType('r'), default=None, help='File to read resample points from')
-    parser.add_argument('-r', '--resample_index', type=int, default=0)
-    parser.add_argument('-x', '--xdata', type=int, default=0)
-    parser.add_argument('-y', '--ydata', type=int, default=1)
-    parser.add_argument('-g', '--group', nargs='+', type=int, default=[])
-    parser.add_argument('-d', '--delimiter', default=None)
-    parser.add_argument('-o', '--ordered', action='store_true', default=False, help='input is sorted by group')
-    args = parser.parse_args()
-    args.jdelim = args.delimiter if args.delimiter != None else ' '
-    
+    pp = ParameterParser('Resample the data points with a different frequency', infiles = 1, columns = 0, append = False, labels = [None])
+    pp.parser.add_argument('-i', '--interpolate', choices=['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'spline'], default='linear')
+    pp.parser.add_argument('-s', '--space', choices=['linear', 'log'], default='linear')
+    pp.parser.add_argument('-b', '--begin', type=float, default=None, help='value to begin resampling at')
+    pp.parser.add_argument('-t', '--terminate', type=float, default=None, help='value to terminate resampling at')
+    pp.parser.add_argument('-n', '--number', type=int, default=10, help='total number of data points to sample')
+    pp.parser.add_argument('-f', '--resample_file', default=None, help='File to read resample points from')
+    pp.parser.add_argument('-r', '--resample_index', default=0)
+    pp.parser.add_argument('-x', '--xdata', default=0)
+    pp.parser.add_argument('-y', '--ydata', default=1)
+    args = pp.parseArgs()
+    if not any(args.labels):
+        args.labels = ['x', 'y']
+    args = pp.getArgs(args)
+    args.x = args.infile.header.index(args.x)
+    args.y = args.infile.header.index(args.y)
+    from scipy import interpolate
+    import numpy as np
+
     if args.interpolate == 'spline':
         args.interpolatef = interpolate.InterpolatedUnivariateSpline
     else:
@@ -59,12 +54,12 @@ if __name__ == "__main__":
     
     if args.resample_file:
         args.xnew = []
-        for line in args.resample_file:
-            args.xnew.append(float(line.rstrip().split()[args.resample_index]))
-        args.resample_file.close()
+        with FileReader(args.resample_file, args) as f:
+            for chunks in f:
+                args.xnew.append(float(chunks[args.resample_index]))
     elif args.space == 'linear':
         args.xnew = np.linspace(args.begin, args.terminate, args.number)
     else:
         args.xnew = np.logspace(args.begin, args.terminate, args.number)
     
-    run_grouping(args.infile, ResampleGroup, args.group, args.delimiter, args.ordered)
+    run_grouping(args.infile, ResampleGroup, args.group, args.ordered)
