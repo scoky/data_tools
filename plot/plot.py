@@ -271,6 +271,20 @@ class PlotGroup(Group):
             **kwargs)
         return ribbon
 
+    @ColMaps(req = ['x', 'y'], opt = ['xx'])
+    def plot_ribbonx(self, kwargs):
+        x = [fmt(x, args.xtype, args.xformat) for x in self.data['x']]
+        if 'xx' in self.data:
+            xx = [fmt(xi, args.xtype, args.xformat) for xi in self.data['xx']]
+            del kwargs['xx']
+        else:
+            xx = [0]*len(x)
+
+        ribbon = args.ax.fill_betweenx([fmt(yi, args.ytype, args.yformat) for yi in self.data['y']],
+            x, xx,
+            **kwargs)
+        return ribbon
+
     @ColMaps(req = ['x', 'y'], opt = ['c'])
     def plot_hexbin(self, kwargs):
         x = [fmt(xi, args.xtype, args.xformat) for xi in self.data['x']]
