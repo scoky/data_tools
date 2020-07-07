@@ -580,4 +580,4 @@ if __name__ == "__main__":
     # Save plot
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(args.filename)
+    plt.savefig(args.filename, transparent=True)
