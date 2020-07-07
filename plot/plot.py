@@ -6,6 +6,8 @@ from toollib.files import ParameterParser
 from toollib.group import Group,run_grouping
 import matplotlib
 matplotlib.use('Agg')
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
 import matplotlib.pyplot as plt
 plt.ioff()
 import numpy as np
@@ -196,7 +198,7 @@ class PlotGroup(Group):
         if args.hatches:
           kwargs['hatch'] = args.hatches.next()
         # if 'color' in kwargs:
-        kwargs['edgecolor'] = kwargs['color']
+        kwargs['edgecolor'] = 'black'
 
         bottom = []
         y = np.array([fmt(y, args.ytype, args.yformat) for y in self.data['y']])
@@ -294,9 +296,10 @@ class PlotGroup(Group):
             x = [xi for xi,yi in xy]
             y = [yi for xi,yi in xy]
         if 'c' in self.data:
-            c = [float(ci) for si in self.data['c']]
+            c = [float(ci) for ci in self.data['c']]
             kwargs['reduce_C_function'] = np.sum # Color is sum of c values in hexbin
             kwargs['C'] = c
+            del kwargs['c']
         if args.size:
             kwargs['gridsize'] = int(100 - args.size.next() * 10 * 1.5) # Scale size parameter
         kwargs['cmap'] = args.colourmap
