@@ -1,4 +1,4 @@
-pytools
+data_tools
 =============
 Useful generic python scripts for working with log files from the command line.
 
@@ -7,27 +7,27 @@ The base directory contains many of the most useful scripts. Most are pretty sel
 Examples:
 * To create a empirical cummulative distribution function from column X (zero-based indexing) in a log file:
 ```
-	<file dt_ecdf.py -c X
+	<file dt_ecdf -c X
 ```
 * You can filter the log file to only the rows where column Y matches a criteria with:
 ```
-	<file dt_where.py -n "c[Y] > 100 or c[Y] == 1" | dt_ecdf.py -c X
+	<file dt_where -n "c[Y] > 100 or c[Y] == 1" | dt_ecdf -c X
 ```
 * Most of the scripts support grouping. This command will count the unique entries in column X per group in column Y:
 ```
-	<file dt_unique.py -g Y -c X
+	<file dt_unique -g Y -c X
 ```
 * The result can then be piped to determine what fraction of the total each group represents:
 ```
-	<file dt_unique.py -g Y -c X | dt_fraction.py -a -c 1
+	<file dt_unique -g Y -c X | dt_fraction -a -c 1
 ```
 * To compute the 5th, median, and 95th percentiles per group in the log, you could use:
 ```
-	<file dt_percentile.py -g Y -c X -p 0.05 0.5 0.95
+	<file dt_percentile -g Y -c X -p 0.05 0.5 0.95
 ```
 * Not satisfied with just numbers? Plot the data with:
 ```
-	<file dt_mode.py -g Y -c X | dt_plot.py --geom line --mapping x=0 y=1
+	<file dt_mode -g Y -c X | dt_plot --geom line --mapping x=0 y=1
 ```
 
 Additionally, log headers are supported with the --header option. If the option is provided, then column names may be specified instead of indices.
