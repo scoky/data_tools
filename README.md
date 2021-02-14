@@ -1,8 +1,13 @@
 data_tools
 =============
-Useful generic python scripts for working with log files from the command line.
+Useful generic python scripts for working with text files from the command line.
 
-The base directory contains many of the most useful scripts. Most are pretty self documenting. The subdirectories contain more domain specific scripts for performing tasks relevant to those domains. I still actively contribute scripts, so expect to see more.
+Working from the command line is the easiest way to explore a new dataset of text files, such as logs. However, many tasks require 
+more advanced tools than are commonly available. So, I wrote a bunch of python scripts for exploring data to complement the standard command-line utilities. 
+The scripts vary from general (e.g., binning log lines by a common column value or values) to domain specific (e.g., 
+computing the stack distance between values in the file).
+
+The repository installs both a library and a series of scripts. Most are pretty self documenting. I still actively contribute scripts, so expect to see more.
 
 Examples:
 * To create a empirical cummulative distribution function from column X (zero-based indexing) in a log file:
@@ -11,7 +16,7 @@ Examples:
 ```
 * You can filter the log file to only the rows where column Y matches a criteria with:
 ```
-	<file dt_where -n "c[Y] > 100 or c[Y] == 1" | dt_ecdf -c X
+	<file dt_where -n -e "c[Y] > 100 or c[Y] == 1" | dt_ecdf -c X
 ```
 * Most of the scripts support grouping. This command will count the unique entries in column X per group in column Y:
 ```
