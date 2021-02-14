@@ -5,9 +5,9 @@ import sys
 import argparse
 import operator
 from decimal import Decimal,getcontext
-from pytools.files import findNumber,ParameterParser
+from data_tools.files import findNumber,ParameterParser
 from collections import defaultdict
-from pytools.group import Group,run_grouping
+from data_tools.group import Group,run_grouping
 
 class EcdfGroup(Group):
     def __init__(self, tup):

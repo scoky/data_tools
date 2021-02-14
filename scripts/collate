@@ -3,7 +3,7 @@
 import os
 import sys
 import argparse
-from pytools.files import findNumber,ParameterParser
+from data_tools.files import findNumber,ParameterParser
 
 class CollaterFile(object):
     def __init__(self, fstream, columns, key, line, callback):

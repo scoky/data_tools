@@ -166,11 +166,14 @@ class FileReader:
         return len(self._header.columns) > 0
 
     def _readHeader(self):
-        preamble = self._inputStream.next()
+        preamble = next(self._inputStream)
         return Header(preamble.strip().split(self._delimiter))
         
     def __iter__(self):
         return self
+
+    def __next__(self):
+        return self.next()
 
     def _firstnext(self):
         self.next = self._next
@@ -180,7 +183,7 @@ class FileReader:
         return row
         
     def _next(self):
-        return self._inputStream.next().strip().split(self._delimiter)
+        return next(self._inputStream).strip().split(self._delimiter)
 
     def readline(self):
         try:

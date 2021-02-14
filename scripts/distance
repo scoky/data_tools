@@ -6,8 +6,8 @@ import math
 import argparse
 from collections import defaultdict
 from multiprocessing import Pool
-from pytools.files import findNumber,ParameterParser
-from pytools.group import Group,run_grouping
+from data_tools.files import findNumber,ParameterParser
+from data_tools.group import Group,run_grouping
 
 def metric_hamming(s1, s2, state=None):
     #Return the Hamming distance between equal-length sequences

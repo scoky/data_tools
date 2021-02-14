@@ -5,7 +5,7 @@ import sys
 import argparse
 from collections import defaultdict
 from itertools import product
-from pytools.files import ParameterParser
+from data_tools.files import ParameterParser
 
 def inner_join(args):
     tables = []

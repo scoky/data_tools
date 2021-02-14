@@ -3,8 +3,8 @@
 import os
 import sys
 import argparse
-from pytools.files import ParameterParser,findNumber
-from pytools.group import Group,run_grouping
+from data_tools.files import ParameterParser,findNumber
+from data_tools.group import Group,run_grouping
 from decimal import Decimal
 
 class NormalizeGroup(Group):

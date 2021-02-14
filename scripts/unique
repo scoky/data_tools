@@ -3,8 +3,8 @@
 import os
 import sys
 import argparse
-from pytools.files import ParameterParser
-from pytools.group import Group,run_grouping
+from data_tools.files import ParameterParser
+from data_tools.group import Group,run_grouping
 
 class UniqueGroup(Group):
     def __init__(self, tup):
