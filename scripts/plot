@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
 import os,sys,argparse
-sys.path.insert(1, os.path.join(os.path.dirname(__file__), os.pardir))
-from toollib.files import ParameterParser
-from toollib.group import Group,run_grouping
+from pytools.files import ParameterParser
+from pytools.group import Group,run_grouping
 import matplotlib
 matplotlib.use('Agg')
 matplotlib.rcParams['pdf.fonttype'] = 42

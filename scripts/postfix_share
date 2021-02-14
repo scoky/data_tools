@@ -2,9 +2,8 @@
 
 import os
 import sys
-sys.path.insert(1, os.path.join(os.path.dirname(__file__), os.pardir))
-from toollib.files import findNumber,ParameterParser
-from toollib.group import Group,run_grouping
+from pytools.files import findNumber,ParameterParser
+from pytools.group import Group,run_grouping
 
 class ShareGroup(Group):
     def __init__(self, tup):
