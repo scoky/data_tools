@@ -12,7 +12,7 @@ The repository installs both a library and a series of scripts. Most are pretty 
 Examples:
 * To create a empirical cummulative distribution function from column X (zero-based indexing) in a log file:
 ```
-	<file dt_ecdf -c X
+	<file ecdf.py -c X
 ```
 * You can filter the log file to only the rows where column Y matches a criteria with:
 ```
