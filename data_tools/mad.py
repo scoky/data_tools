@@ -5,8 +5,8 @@ import sys
 import argparse
 from collections import defaultdict
 from decimal import Decimal
-from data_tools.lib.files import findNumber,ParameterParser
-from data_tools.lib.group import Group,run_grouping
+from lib.files import findNumber,ParameterParser
+from lib.group import Group,run_grouping
 from math import sqrt
 from median import computePercentile
 

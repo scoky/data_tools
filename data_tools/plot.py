@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import os,sys,argparse
-from data_tools.lib.files import ParameterParser
-from data_tools.lib.group import Group,run_grouping
+from lib.files import ParameterParser
+from lib.group import Group,run_grouping
 import matplotlib
 matplotlib.use('Agg')
 matplotlib.rcParams['pdf.fonttype'] = 42
@@ -97,7 +97,7 @@ class PlotGroup(Group):
           args.hatches.enable()
 
         args.geom.enable()
-        for geom in args.geom.next().split('+'):
+        for geom in next(args.geom).split('+'):
             if not hasattr(self, 'plot_{0}'.format(geom)):
                 raise ValueError('Invalid geometry {0} specified'.format(geom))
             f = getattr(self, 'plot_{0}'.format(geom))
@@ -565,7 +565,7 @@ if __name__ == "__main__":
         args.ax.xaxis.set_major_formatter(tick_fmt(args.xtype, args.xtickformat))
 
     if args.yscale:
-        args.ax.set_yscale(args.yscale, nonposy='clip')
+        args.ax.set_yscale(args.yscale)#, nonposy='clip')
     if args.ymajorticks:
         args.ax.set_yticks([fmt(y, args.ytype, args.yformat) for y in args.ymajorticks])
         if args.ymajorticklabels:

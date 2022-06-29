@@ -3,8 +3,8 @@
 import os
 import sys
 import argparse
-from data_tools.lib.files import findNumber,ParameterParser
-from data_tools.lib.group import Group,run_grouping
+from lib.files import findNumber,ParameterParser
+from lib.group import Group,run_grouping
 from decimal import Decimal
 from numpy import convolve as np_convolve
 

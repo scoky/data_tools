@@ -4,8 +4,8 @@ import os
 import sys
 import argparse
 from sklearn.cluster import DBSCAN
-from data_tools.lib.files import findNumber,ParameterParser
-from data_tools.lib.group import Group,run_grouping
+from lib.files import findNumber,ParameterParser
+from lib.group import Group,run_grouping
 
 class OfflineDBSCANGroup(Group):
     def __init__(self, tup):

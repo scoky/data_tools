@@ -3,7 +3,7 @@
 import os
 import sys
 import argparse
-from data_tools.lib.files import ParameterParser
+from lib.files import ParameterParser
 
 def concat_rows():
     for infile in args.infiles:

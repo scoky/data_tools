@@ -148,10 +148,10 @@ class FileReader:
         header = args.header or os.environ.get('TOOLBOX_HEADER', '').lower() == 'true'
         if header:
             self._header = self._readHeader()
-            self.next = self._firstnext
+            self._next = self._firstnext
         else:
             self._header = Header()
-            self.next = self._next
+            self._next = self._secondnext
 
     @property
     def delimiter(self):
@@ -173,16 +173,16 @@ class FileReader:
         return self
 
     def __next__(self):
-        return next(self)
+        return self._next()
 
     def _firstnext(self):
-        self.next = self._next
+        self._next = self._secondnext
         row = next(self)
         if len(row) != len(self._header):
             sys.stderr.write('Warning: number of rows in input does not match number of rows in header\n')
         return row
         
-    def _next(self):
+    def _secondnext(self):
         return next(self._inputStream).strip().split(self._delimiter)
 
     def readline(self):

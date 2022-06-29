@@ -3,7 +3,7 @@
 import os
 import sys
 import argparse
-from data_tools.lib.files import ParameterParser
+from lib.files import ParameterParser
 
 if __name__ == "__main__":
     pp = ParameterParser('Compute intersection of column(s)', columns = 0, infiles = '*', group = False, append = False, ordered = False)

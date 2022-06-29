@@ -2,7 +2,7 @@
 
 import os
 import sys
-from data_tools.lib.files import ParameterParser
+from lib.files import ParameterParser
 
 if __name__ == "__main__":
     pp = ParameterParser('Select columns from a file', columns = '*', group = False, append = False, labels = [None], ordered = False)

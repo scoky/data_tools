@@ -3,7 +3,7 @@
 import os
 import sys
 import argparse
-from data_tools.lib.files import FileReader,ParameterParser
+from lib.files import FileReader,ParameterParser
 
 if __name__ == "__main__":
     # set up command line args

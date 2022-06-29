@@ -4,8 +4,8 @@ import os
 import sys
 import argparse
 from collections import defaultdict
-from data_tools.lib.files import ParameterParser
-from data_tools.lib.group import Group,run_grouping
+from lib.files import ParameterParser
+from lib.group import Group,run_grouping
 
 class StackGroup(Group):
     def __init__(self, tup):

@@ -2,11 +2,11 @@
 
 import os
 import sys
-from data_tools.lib.files import ParameterParser
+from lib.files import ParameterParser
 from datetime import datetime,timedelta,time as dtime
 from decimal import Decimal
 import time
-from data_tools.lib.group import Group,run_grouping
+from lib.group import Group,run_grouping
 
 class TimestampGroup(Group):
     def __init__(self, tup):

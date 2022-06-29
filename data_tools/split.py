@@ -3,9 +3,9 @@
 import os
 import sys
 import argparse
-from data_tools.lib.files import FileWriter,ParameterParser,openFile
-from data_tools.lib.group import Group,run_grouping
-from data_tools.lib.file_handle_dictionary import FileHandleDict
+from lib.files import FileWriter,ParameterParser,openFile
+from lib.group import Group,run_grouping
+from lib.file_handle_dictionary import FileHandleDict
 
 class SplitGroup(Group):
     def __init__(self, tup):

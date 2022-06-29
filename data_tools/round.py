@@ -4,8 +4,8 @@ import os
 import sys
 import math
 from decimal import Decimal,getcontext,ROUND_FLOOR
-from data_tools.lib.files import findNumber,ParameterParser
-from data_tools.lib.group import Group,run_grouping
+from lib.files import findNumber,ParameterParser
+from lib.group import Group,run_grouping
 
 class RoundGroup(Group):
     def __init__(self, tup):

@@ -2,7 +2,7 @@
 
 import os
 import sys
-from data_tools.lib.files import ParameterParser
+from lib.files import ParameterParser
 
 def printCols(data, headers = None, stream = sys.stdout, min_lengths = None):
    rows = []

@@ -4,8 +4,8 @@ import os
 import sys
 import argparse
 from collections import deque
-from data_tools.lib.files import ParameterParser,findNumber
-from data_tools.lib.group import Group,run_grouping
+from lib.files import ParameterParser,findNumber
+from lib.group import Group,run_grouping
 from heapq import heappush, heappop
         
 class KNearGroup(Group):
