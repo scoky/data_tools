@@ -408,6 +408,18 @@ def tick_fmt(vtype, vformat):
     elif vtype == 'datetime':
         return DateFormatter(vformat)
 
+def get_geoms():
+    import inspect
+    output = ''
+    for method_name,method in inspect.getmembers(PlotGroup, predicate = inspect.isfunction):
+        if method_name.startswith('plot_'):
+            geom = method_name.split('_', 1)[1]
+            opt = ''
+            if len(method.optional_mappings) > 0:
+                opt = 'opt => {0}'.format(', '.join(method.optional_mappings))
+            output += geom + ' : req => ' + ', '.join(method.required_mappings) + ' ' + opt + '\n'
+    return output
+
 if __name__ == "__main__":
     pp = ParameterParser('Plot input files', infiles = '*', append = False, columns = 0, group = True, ordered = False)
     pp.parser.add_argument('-l', '--sourcelabels', nargs='+', help='labels for each source file in order')
@@ -439,8 +451,7 @@ if __name__ == "__main__":
 
     pp.parser.add_argument('-t', '--title')
     pp.parser.add_argument('--fontsize', type=int, default=16)
-    pp.parser.add_argument('--geom', default=['line'], nargs='+', help='How to plot the sources.' + \
-        ' Use --geom help to display supported geometries and their mappings.')
+    pp.parser.add_argument('--geom', default=['line'], nargs='+', help='How to plot the sources and mappings needed.\n' + get_geoms())
     pp.parser.add_argument('--colours', nargs='+', help='colors to rotate through')
     pp.parser.add_argument('--colourmap', default='rainbow', help='rotate through the map. overridden by --colour')
     pp.parser.add_argument('--colourbarlabel', default='', help='label for the colour bar (if there is one)')
@@ -488,17 +499,6 @@ if __name__ == "__main__":
     args.labels = []
 
     args.plotted_items = 0
-    # Print help information about available geoms
-    if args.geom[0].lower() == 'help':
-        import inspect
-        for method_name,method in inspect.getmembers(PlotGroup, predicate = inspect.ismethod):
-            if method_name.startswith('plot_'):
-                geom = method_name.split('_', 1)[1]
-                opt = ''
-                if len(method.optional_mappings) > 0:
-                    opt = 'opt => {0}'.format(', '.join(method.optional_mappings))
-                print(geom, ': req =>', ', '.join(method.required_mappings), opt)
-        sys.exit()
     args.geom = LoopIterator(args.geom)
 
     # Validate inputs

@@ -38,13 +38,15 @@ def fileRange(startFile, endFile):
             ret.append(fn)
     return sorted(ret)
 
-def openFile(filename, opts):
+def openFile(filename, opts, **kwargs):
+    import io
     if type(filename) is str:
         if filename == '-':
             return sys.stdin if opts == 'r' else sys.stdout
         else:
-            return gzip.open(os.path.expanduser(filename), opts+'b') if filename.endswith('.gz') else open(os.path.expanduser(filename), opts)
-    elif type(filename) is file:
+            import gzip
+            return gzip.open(os.path.expanduser(filename), opts+'t', **kwargs) if filename.endswith('.gz') else open(os.path.expanduser(filename), opts, **kwargs)
+    elif isinstance(filename, io.IOBase):
         return filename
     else:
         raise IOError('Unknown input type: %s' % type(filename))
@@ -109,8 +111,11 @@ class Header:
 
 class FileWriter:
     def __init__(self, outputStream, reader, args, opts = 'w'):
-        self._outputStream = openFile(outputStream, opts)
+        self._fileStream = openFile(outputStream, opts, newline='')
         self._delimiter = args.delimiter if args.delimiter else os.environ.get('TOOLBOX_DELIMITER', ' ')
+        self._quotechar = args.quotechar if args.quotechar else os.environ.get('TOOLBOX_QUOTECHAR', '"')
+        import csv
+        self._outputStream = csv.writer(self._fileStream, delimiter=self._delimiter, quotechar=self._quotechar, quoting=csv.QUOTE_MINIMAL, lineterminator='\n')
         self.write = self._firstwrite
         self._header = Header()
         if reader and reader.hasHeader:
@@ -139,12 +144,15 @@ class FileWriter:
         self.write(chunks)
 
     def _write(self, chunks):
-        self._outputStream.write(self._delimiter.join(map(str, chunks))+'\n')
+        self._outputStream.writerow(chunks)
 
 class FileReader:
     def __init__(self, inputStream, args):
-        self._inputStream = openFile(inputStream, 'r')
-        self._delimiter = args.delimiter if args.delimiter else os.environ.get('TOOLBOX_DELIMITER', None)
+        self._delimiter = args.delimiter if args.delimiter else os.environ.get('TOOLBOX_DELIMITER', ' ')
+        self._quotechar = args.quotechar if args.quotechar else os.environ.get('TOOLBOX_QUOTECHAR', '"')
+        self._fileStream = openFile(inputStream, 'r', newline='')
+        import csv
+        self._inputStream = csv.reader(self._fileStream, delimiter=self._delimiter, quotechar=self._quotechar, skipinitialspace=True)
         header = args.header or os.environ.get('TOOLBOX_HEADER', '').lower() == 'true'
         if header:
             self._header = self._readHeader()
@@ -167,7 +175,7 @@ class FileReader:
 
     def _readHeader(self):
         preamble = next(self._inputStream)
-        return Header(preamble.strip().split(self._delimiter))
+        return Header(preamble)
         
     def __iter__(self):
         return self
@@ -183,7 +191,7 @@ class FileReader:
         return row
         
     def _secondnext(self):
-        return next(self._inputStream).strip().split(self._delimiter)
+        return next(self._inputStream)
 
     def readline(self):
         try:
@@ -192,17 +200,18 @@ class FileReader:
             return None
 
     def close(self):
-        self._inputStream.close()
+        pass
+        self._fileStream.close()
 
     def __enter__(self):
         return self
-        
+
     def __exit__(self, type, value, traceback):
         self.close()
 
 class ParameterParser:
     def __init__(self, descrip, infiles = 1, outfile = True, group = True, columns = 1, append = True, labels = None, ordered = True):
-        self.parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=descrip)
+        self.parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, description=descrip)
         if infiles == 0:
             pass
         elif infiles == 1:
@@ -223,8 +232,9 @@ class ParameterParser:
             self.parser.add_argument('--append', action='store_true', default=False, help='keep original columns in output')
         if ordered:
             self.parser.add_argument('--ordered', action='store_true', default=False, help='input is sorted by group')
-        self.parser.add_argument('--delimiter', default=None)
-        self.parser.add_argument('--header', action='store_true', default=False)
+        self.parser.add_argument('--delimiter', default=None, help='if not specified, env TOOLBOX_DELIMITER or whitespace is used')
+        self.parser.add_argument('--quotechar', default=None, help='if not specified, env TOOLBOX_QUOTECHAR or " is used')
+        self.parser.add_argument('--header', action='store_true', default=False, help='override with env TOOLBOX_HEADER')
 
     def parseArgs(self):
         args = self.parser.parse_args()
