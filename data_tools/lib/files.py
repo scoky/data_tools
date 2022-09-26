@@ -1,17 +1,12 @@
-#!/usr/bin/env python
-
 import os
-import re
 import sys
-import glob
-import argparse
-from copy import copy
-from decimal import Decimal,InvalidOperation
 
+import re
 number_pattern = re.compile("(-?\d+\.?\d*(e[\+|\-]?\d+)?)", re.IGNORECASE)
 
 # Search an input value for a number
 def findNumber(value):
+    from decimal import Decimal,InvalidOperation
     try:
         return Decimal(value)
     except InvalidOperation:
@@ -19,6 +14,47 @@ def findNumber(value):
             return Decimal(number_pattern.search(value.replace(',', '')).group())
         except AttributeError:
             raise Exception('Value "{0}" does not contain a number'.format(value))
+
+class ValueInterpreter:
+    def __init__(self):
+        from decimal import Decimal,InvalidOperation
+        import ipaddress
+        from collections import OrderedDict
+        self._types = OrderedDict()
+        self._types['number'] = (Decimal, InvalidOperation)
+        self._types['ip'] = (ipaddress.ip_network, ValueError)
+        # type 'string' is not added to the dict because it doesn't need to be parsed
+        self._cols = {}
+
+    def interpretCol(self, value, column):
+        if column in self._cols:
+            # This column has a known type
+            interpret_type = self._cols[column]
+            # Short circuit strings since no parsing is needed
+            if interpret_type == 'string':
+                return value
+            classFunc, classError = self._types[interpret_type]
+            try:
+                return classFunc(value)
+            except classError:
+                # Previous rows had a interpreted type for this column that no longer works for later columns
+                raise Exception("Column {} interpretted as {} but '{}' cannot be parsed".format(column, interpret_type, value))
+        else:
+            # This column has not been encountered before and doesn't have a known type
+            value, interpret_type = self.interpret(value)
+            # Save the type for future parsing
+            self._cols[column] = interpret_type
+            return value
+
+    def interpret(self, value):
+        for name,data in self._types.items():
+            classFunc, classError = data
+            try:
+                return classFunc(value), name
+            except classError:
+                pass
+        # Return uninterpretted (as string)
+        return value, 'string'
 
 def concatFiles(files, opts='r'):
     for f in files:
@@ -28,6 +64,7 @@ def concatFiles(files, opts='r'):
 def fileRange(startFile, endFile):
     startDir, startFile = os.path.split(startFile)
     _, endFile = os.path.split(endFile)
+    import glob
     if startDir == '':
         files = glob.iglob('*');
     else:
@@ -90,7 +127,7 @@ class Header:
             try:
                 return int(colName)
             except ValueError as e:
-                raise ValueError('Invalid column %s specified' % colName)
+                raise ValueError("Invalid column '%s' specified" % colName) from e
 
     def indexes(self, colNames):
         return [self.index(colName) for colName in colNames]
@@ -107,6 +144,7 @@ class Header:
         return [self.name(index) for index in indexes]
 
     def copy(self):
+        from copy import copy
         return Header(copy(self.columns))
 
 class FileWriter:
@@ -144,7 +182,10 @@ class FileWriter:
         self.write(chunks)
 
     def _write(self, chunks):
-        self._outputStream.writerow(chunks)
+        try:
+            self._outputStream.writerow(chunks)
+        except BrokenPipeError:
+            sys.exit(1)
 
 class FileReader:
     def __init__(self, inputStream, args):
@@ -174,7 +215,11 @@ class FileReader:
         return len(self._header.columns) > 0
 
     def _readHeader(self):
-        preamble = next(self._inputStream)
+        try:
+            preamble = next(self._inputStream)
+        except StopIteration:
+            # No rows
+            preamble = []
         return Header(preamble)
         
     def __iter__(self):
@@ -189,9 +234,9 @@ class FileReader:
         if len(row) != len(self._header):
             sys.stderr.write('Warning: number of rows in input does not match number of rows in header\n')
         return row
-        
+
     def _secondnext(self):
-        return next(self._inputStream)
+        return next(self._inputStream) # TODO: Interpolate types? str, int, float, decimal, ipaddress
 
     def readline(self):
         try:
@@ -211,6 +256,7 @@ class FileReader:
 
 class ParameterParser:
     def __init__(self, descrip, infiles = 1, outfile = True, group = True, columns = 1, append = True, labels = None, ordered = True):
+        import argparse
         self.parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, description=descrip)
         if infiles == 0:
             pass

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 class Group(object):
     def __init__(self, tup = []):
         self.tup = tup

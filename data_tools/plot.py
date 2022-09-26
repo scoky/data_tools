@@ -575,7 +575,7 @@ if __name__ == "__main__":
     if args.ytickformat:
         args.ax.yaxis.set_major_formatter(tick_fmt(args.ytype, args.ytickformat))
 
-    if not args.nolegend:
+    if not args.nolegend and len([l for l in args.labels if l != '']) > 0:
         arts, lbls = args.ax.get_legend_handles_labels()
         arts_o = [arts[lbls.index(l)] for l in args.labels if l in lbls]
         plt.legend(arts_o, args.labels, loc = args.legendposition if args.legendposition is not None else 0, fontsize = args.legendfontsize)

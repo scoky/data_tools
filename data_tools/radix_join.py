@@ -7,7 +7,7 @@ from lib.files import FileReader,ParameterParser
 
 if __name__ == "__main__":
     # set up command line args
-    pp = ParameterParser('Join data on radix tree', columns = 1, labels = [None], append = False)
+    pp = ParameterParser('Join data on radix tree', columns = 1, group = False, append = False)
     pp.parser.add_argument('-p', '--prefix_file', help='file containing list of cidrs')
     pp.parser.add_argument('-i', '--prefix_index', default=0, help='field containing the cidr')
     pp.parser.add_argument('-j', '--join_method', choices=['inner', 'left_outer', 'outer'], default='inner', help='determines whether ips that do not match any cidr are dropped')
@@ -16,6 +16,8 @@ if __name__ == "__main__":
     args.prefix_file = FileReader(args.prefix_file, args)
     args.prefix_index = args.prefix_file.header.index(args.prefix_index)
 
+    args.outfile.header.addCols(args.infile.header.columns)
+    args.outfile.header.addCols(args.prefix_file.header.columns)
     import radix
     r = radix.Radix()
     columns = 0
