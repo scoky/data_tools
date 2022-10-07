@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import argparse
+from collections import defaultdict
+from decimal import Decimal
+from data_tools.files import findNumber,ParameterParser
+from data_tools.group import Group,run_grouping
+from math import sqrt
+
+class DistGroup(Group):
+    def __init__(self, tup):
+        super(DistGroup, self).__init__(tup)
+        self.vals = []
+        self.expect = []
+
+    def add(self, chunks):
+        val = float(findNumber(chunks[args.column]))
+        self.vals.append(val)
+        if args.expectation is not None:
+            self.expect.append(float(findNumber(chunks[args.expectation])))
+
+    def done(self):
+        import numpy as np
+        vals = np.array(self.vals)
+        expect = np.array(self.expect)
+        expect = expect / np.sum(expect)
+        if args.invert:
+            expect = (np.sum(expect) / expect) / np.sum(np.sum(expect) / expect)
+        else:
+            expect = expect / np.sum(expect)
+        expect = expect * np.sum(vals)
+        if args.pad is not None and args.pad > len(vals):
+            vals = np.append(vals, [0.0] * (args.pad - len(vals)))
+            expect = np.append(expect, [0.0] * (args.pad - len(expect)))
+        from scipy.stats import chisquare
+        args.outfile.write(self.tup + list(chisquare(vals) if args.expectation is None else chisquare(vals, f_exp = expect)))
+
+if __name__ == "__main__":
+    pp = ParameterParser('Entropy of a column', columns = 1, append = False, labels = [None])
+    pp.parser.add_argument('-d', '--dist', choices = ['chisquare'], default='chisquare', help='distribution test to run')
+    pp.parser.add_argument('-e', '--expectation', default=None, help='column containing expected distribution ratio')
+    pp.parser.add_argument('-i', '--invert', action='store_true', default=False, help='invert the expected values (smaller values proportionally more likely)')
+    pp.parser.add_argument('-p', '--pad', type=int, default=None, help='pad to number of potential values')
+    args = pp.parseArgs()
+    if not any(args.labels):
+        args.labels = [args.column_name + '_disttest']
+    args = pp.getArgs(args)
+    args.expectation = args.infile.header.index(args.expectation)
+
+    run_grouping(args.infile, DistGroup, args.group, args.ordered)
