@@ -194,7 +194,7 @@ class FileReader:
         self._fileStream = openFile(inputStream, 'r', newline='')
         import csv
         self._inputStream = csv.reader(self._fileStream, delimiter=self._delimiter, quotechar=self._quotechar, skipinitialspace=True)
-        header = args.header or os.environ.get('TOOLBOX_HEADER', '').lower() == 'true'
+        header = args.header if not args.header is None else (os.environ.get('TOOLBOX_HEADER', '').lower() == 'true')
         if header:
             self._header = self._readHeader()
             self._next = self._firstnext
@@ -280,7 +280,8 @@ class ParameterParser:
             self.parser.add_argument('--ordered', action='store_true', default=False, help='input is sorted by group')
         self.parser.add_argument('--delimiter', default=None, help='if not specified, env TOOLBOX_DELIMITER or whitespace is used')
         self.parser.add_argument('--quotechar', default=None, help='if not specified, env TOOLBOX_QUOTECHAR or " is used')
-        self.parser.add_argument('--header', action='store_true', default=False, help='override with env TOOLBOX_HEADER')
+        self.parser.add_argument('--header', action='store_true', default=None, help='override env TOOLBOX_HEADER')
+        self.parser.add_argument('--no-header', action='store_false', dest='header', help='override env TOOLBOX_HEADER')
 
     def parseArgs(self):
         args = self.parser.parse_args()
