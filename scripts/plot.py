@@ -238,14 +238,18 @@ class PlotGroup(Group):
             l.set_drawstyle('steps-post')
         return line
 
-    @ColMaps(req = ['sample'])
+    @ColMaps(req = ['sample'], opt = ['x'])
     def plot_boxplot(self, kwargs):
         if not hasattr(args, 'boxplotx'):
             args.boxplotx = 1
         del kwargs['color']
         del kwargs['label']
-        kwargs['positions'] = [args.boxplotx]
-        kwargs['widths'] = 0.9
+        if 'x' in self.data:
+            kwargs['positions'] = [fmt(self.data['x'][0], args.xtype, args.xformat)]
+            del kwargs['x']
+        else:
+            kwargs['positions'] = [args.boxplotx]
+        kwargs['widths'] = next(args.size)
         box = args.ax.boxplot([[fmt(y, args.ytype, args.yformat) for y in self.data['sample']]],
             **kwargs)
         args.boxplotx += 1
