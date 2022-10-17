@@ -150,10 +150,11 @@ class PlotGroup(Group):
                 trans = args.ax.get_xaxis_transform()
                 kwargs['fontsize'] = next(args.size)
                 args.ax.text(xf, 0.5, self.data['label'][i], 
-                    backgroundcolor='white',
+                    backgroundcolor=args.ax.get_facecolor(),
                     horizontalalignment='center',
                     verticalalignment='center',
                     rotation='vertical', 
+                    clip_on=True,
                     transform=trans, 
                     **kwargs)
                 del kwargs['fontsize']
