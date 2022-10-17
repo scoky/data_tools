@@ -140,6 +140,24 @@ class PlotGroup(Group):
 
         return line
 
+    @ColMaps(req = ['x'], opt = ['label'])
+    def plot_vline(self, kwargs):
+        for i,x in enumerate(self.data['x']):
+            xf = fmt(x, args.xtype, args.xformat)
+            axvline = args.ax.axvline(xf, 
+                **kwargs)
+            if 'label' in self.data:
+                trans = args.ax.get_xaxis_transform()
+                kwargs['fontsize'] = next(args.size)
+                args.ax.text(xf, 0.5, self.data['label'][i], 
+                    backgroundcolor='white',
+                    horizontalalignment='center',
+                    verticalalignment='center',
+                    rotation='vertical', 
+                    transform=trans, 
+                    **kwargs)
+                del kwargs['fontsize']
+
     @ColMaps(req = ['x', 'y'], opt = ['yhigh', 'ylow', 'ydelta'])
     def plot_errorbar(self, kwargs):
         err = None
