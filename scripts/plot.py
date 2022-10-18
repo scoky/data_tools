@@ -262,7 +262,9 @@ class PlotGroup(Group):
         if not hasattr(args, 'boxplotx'):
             args.boxplotx = 1
         del kwargs['color']
-        del kwargs['label']
+        if 'label' in kwargs:
+            kwargs['labels'] = [kwargs['label']]
+            del kwargs['label']
         if 'x' in self.data:
             kwargs['positions'] = [fmt(self.data['x'][0], args.xtype, args.xformat)]
             del kwargs['x']
