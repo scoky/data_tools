@@ -10,25 +10,41 @@ from decimal import Decimal
 class NormalizeGroup(Group):
     def __init__(self, tup):
         super(NormalizeGroup, self).__init__(tup)
-        self.value = 0
-        args.collect.append(self)
+        self.values = []
 
     def add(self, chunks):
-        self.value += findNumber(chunks[args.column])
+        self.values.append(chunks)
+
+    # def done(self):
+    #     maxv = max(findNumber(chunks[args.column]) for chunks in self.values)
+    #     minv = min(findNumber(chunks[args.column]) for chunks in self.values)
+    #     for chunks in self.values:
+    #         value = findNumber(chunks[args.column])
+    #         value = ((value - minv) / (maxv - minv)) * (args.range[1] - args.range[0]) + args.range[0]
+    #         if args.append:
+    #             args.outfile.write(chunks + [value])
+    #         else:
+    #             args.outfile.write(self.tup + [value])
 
     def done(self):
-        pass
+        import numpy as np
+        vals = np.array([findNumber(chunks[args.column]) for chunks in self.values])
+        vals = (vals - vals.mean()) / vals.std()
+        if not args.range is None:
+            vals = ((vals - vals.min()) / (vals.max() - vals.min())) * (args.range[1] - args.range[0]) + args.range[0]
+        if args.append:
+            for value,chunks in zip(vals, self.values):
+                args.outfile.write(chunks + [value])
+        else:
+            for value in vals:
+                args.outfile.write(self.tup + [value])
 
 if __name__ == "__main__":
-    pp = ParameterParser('Normalize values in column', columns = 1, append = False, labels = [None])
+    pp = ParameterParser('Normalize values in column', columns = 1, append = True, labels = [None])
+    pp.parser.add_argument('-r', '--range', nargs=2, type=int, default=None, help='normalization range')
     args = pp.parseArgs()
     if not any(args.labels):
         args.labels = [args.column_name + '_norm']
     args = pp.getArgs(args)
-    args.collect = []
 
     run_grouping(args.infile, NormalizeGroup, args.group, args.ordered)
-
-    mvalue = max(g.value for g in args.collect)
-    for g in args.collect:
-        args.outfile.write(g.tup + [g.value / mvalue])

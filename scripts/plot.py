@@ -493,6 +493,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('--legendposition', type=int)
     pp.parser.add_argument('--legendfontsize')
     pp.parser.add_argument('--flip', action='store_true', default=False, help='flip x and y (not implemented!)')
+    pp.parser.add_argument('--fill_background', action='store_true', default=False, help='Background is transparent unless set')
     args = pp.parseArgs()
     args = pp.getArgs(args)
     if args.colours is None:
@@ -607,4 +608,4 @@ if __name__ == "__main__":
     # Save plot
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(args.filename, transparent=True)
+    plt.savefig(args.filename, transparent=(not args.fill_background))

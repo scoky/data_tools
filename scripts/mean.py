@@ -76,7 +76,7 @@ class InvertedMeanGroup(Group):
         args.outfile.write(self.tup + m)
 
 if __name__ == "__main__":
-    pp = ParameterParser('Compute mean of columns', columns = '*', labels = [None])
+    pp = ParameterParser('Compute mean of columns', columns = '*', labels = [None], append=False)
     pp.parser.add_argument('-b', '--bins', default = None, nargs='+')
     pp.parser.add_argument('-e', '--geometric', action='store_true', default=False, help='compute geometric mean')
     pp.parser.add_argument('-i', '--invert', action='store_true', default=False, help='invert the bins per value in the mean')

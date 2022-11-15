@@ -11,12 +11,13 @@ class MaxMindGroup(Group):
         super(MaxMindGroup, self).__init__(tup)
 
     def add(self, chunks):
+        ip = chunks[args.column]
         import geoip2.errors
         try:
-            v = args.maxmind_function(chunks[args.column])
-            data = [v.city.names[args.locale] if args.locale in v.city.names else 'unknown', v.city.confidence, v.country.iso_code, v.country.confidence, v.continent.code, v.location.latitude, v.location.longitude, v.location.accuracy_radius]
+            v = args.maxmind_function(ip)
+            data = [ip, v.traits.autonomous_system_number, v.traits.autonomous_system_organization, v.city.names[args.locale] if args.locale in v.city.names else 'unknown', v.city.confidence, v.country.iso_code, v.country.confidence, v.continent.code, v.location.latitude, v.location.longitude, v.location.accuracy_radius]
         except geoip2.errors.AddressNotFoundError:
-            data = ['missing', None, 'missing', None, 'missing', 'missing', 'missing', None]
+            data = [ip, 'missing', 'missing', 'missing', None, 'missing', None, 'missing', 'missing', 'missing', None]
         if args.append:
             args.outfile.write(chunks + data)
         else:
@@ -30,7 +31,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('--db', help='MaxMind City DB file', required=True)
     pp.parser.add_argument('--locale', default='en', help='How to represent the city')
     args = pp.parseArgs()
-    args.labels = ['city', 'city_confidence', 'country', 'country_confidence', 'continent', 'latitude', 'longitude', 'accuracy']
+    args.labels = ['ip', 'asn', 'org', 'city', 'city_confidence', 'country', 'country_confidence', 'continent', 'latitude', 'longitude', 'accuracy']
     args = pp.getArgs(args)
     import geoip2.database
     args.reader = geoip2.database.Reader(args.db)
