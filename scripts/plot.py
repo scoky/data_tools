@@ -209,8 +209,8 @@ class PlotGroup(Group):
             kwargs['width'] = next(args.size)
 
         # Draw bars
-        if not hasattr(args, 'baroffset'):
-            args.baroffset = 0
+        # if not hasattr(args, 'baroffset'):
+        #     args.baroffset = 0
         if not hasattr(args, 'stackbottom'):
             args.stackbottom = {}
         if args.hatches:
@@ -220,7 +220,7 @@ class PlotGroup(Group):
 
         bottom = []
         y = np.array([fmt(y, args.ytype, args.yformat) for y in self.data['y']])
-        x = np.array([fmt(x, args.xtype, args.xformat) + args.baroffset for x in self.data['x']])
+        x = np.array([fmt(x, args.xtype, args.xformat) for x in self.data['x']])
         # Set the bottom position for this data and save the bottom position for the next
         for xx,yy in zip(x,y):
           if xx in args.stackbottom:
@@ -276,22 +276,30 @@ class PlotGroup(Group):
         args.boxplotx += 1
         return box
 
-    @ColMaps(req = ['x', 'y'], opt = ['yy'])
+    @ColMaps(req = ['x', 'y'])
     def plot_ribbonstack(self, kwargs):
-        raise Exception('Not Implemented!')
         if not hasattr(args, 'ribbonbottom'):
-          args.ribbonbottom
-        ribbon = self.plot_ribbon(kwargs)
+          from collections import defaultdict
+          args.ribbonbottom = defaultdict(int)
+        yy = [args.ribbonbottom[fmt(xi, args.xtype, args.xformat)] for xi in self.data['x']]
+        for xi,yi in zip(self.data['x'], self.data['y']):
+            args.ribbonbottom[fmt(xi, args.xtype, args.xformat)] += fmt(yi, args.ytype, args.yformat)
+        self.data['yy'] = yy
+        self.data['y'] = [fmt(yi, args.ytype, args.yformat) + yyi for yi,yyi in zip(self.data['y'], yy)]
+        return self.plot_ribbon(kwargs)
 
     @ColMaps(req = ['x', 'y'], opt = ['yy'])
     def plot_ribbon(self, kwargs):
         y = [fmt(yi, args.ytype, args.yformat) for yi in self.data['y']]
         if 'yy' in self.data:
             yy = [fmt(yi, args.ytype, args.yformat) for yi in self.data['yy']]
-            del kwargs['yy']
+            # del kwargs['yy']
         else:
             yy = [0]*len(y)
 
+        if args.hatches:
+          kwargs['hatch'] = next(args.hatches)
+          kwargs['edgecolor'] = 'black' # So hatches are visible
         ribbon = args.ax.fill_between([fmt(x, args.xtype, args.xformat) for x in self.data['x']],
             y, yy,
             **kwargs)

@@ -10,15 +10,22 @@ class PadGroup(Group):
     def __init__(self, tup):
         super(PadGroup, self).__init__(tup)
         self.present = set()
+        self.ncolumns = 0
 
     def add(self, chunks):
         self.present.add(tuple(chunks[i] for i in args.columns))
         args.outfile.write(chunks)
+        self.ncolumns = len(chunks)
 
     def done(self):
+        row = (args.pad * self.ncolumns)[:self.ncolumns]
         for element in args.elements:
             if element not in self.present:
-                args.outfile.write(self.tup + list(element) + args.pad)
+                for i,j in enumerate(args.columns):
+                    row[j] = element[i]
+                for i,j in enumerate(args.group):
+                    row[j] = self.tup[i]
+                args.outfile.write(row)
 
 if __name__ == "__main__":
     pp = ParameterParser('Generate additional rows to pad input', columns = '*', append = False, labels = False, ordered = False)
