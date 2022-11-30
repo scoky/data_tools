@@ -15,6 +15,14 @@ def findNumber(value):
         except AttributeError:
             raise Exception('Value "{0}" does not contain a number'.format(value))
 
+def parseBool(x):
+    if x == 'True':
+        return True
+    elif x == 'False':
+        return False
+    else: 
+        raise ValueError('not a bool')
+
 class ValueInterpreter:
     def __init__(self):
         from decimal import Decimal,InvalidOperation
@@ -23,6 +31,7 @@ class ValueInterpreter:
         self._types = OrderedDict()
         self._types['number'] = (Decimal, InvalidOperation)
         self._types['ip'] = (ipaddress.ip_network, ValueError)
+        self._types['bool'] = (parseBool, ValueError)
         # type 'string' is not added to the dict because it doesn't need to be parsed
         self._cols = {}
 

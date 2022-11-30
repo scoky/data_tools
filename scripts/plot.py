@@ -471,6 +471,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('--xmajorticklabels', nargs='+', help='custom labels for the major ticks')
     pp.parser.add_argument('--xminorticks', nargs='+', help='positions of the minor ticks')
     pp.parser.add_argument('--xtickformat', help='formatting for major x ticks')
+    pp.parser.add_argument('--xrotation', type=int, default=None, help='rotate x-axis labels')
 
     pp.parser.add_argument('-y', '--ylabel', help='label for the y-axis')
     pp.parser.add_argument('--yrange', nargs=2, help='range for the y-axis')
@@ -501,7 +502,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('--legendposition', type=int)
     pp.parser.add_argument('--legendfontsize')
     pp.parser.add_argument('--flip', action='store_true', default=False, help='flip x and y (not implemented!)')
-    pp.parser.add_argument('--fill_background', action='store_true', default=False, help='Background is transparent unless set')
+    pp.parser.add_argument('--transparent', action='store_true', default=False, help='Background is transparent if set')
     args = pp.parseArgs()
     args = pp.getArgs(args)
     if args.colours is None:
@@ -592,11 +593,13 @@ if __name__ == "__main__":
     if args.xmajorticks:
         args.ax.set_xticks([fmt(x, args.xtype, args.xformat) for x in args.xmajorticks])
         if args.xmajorticklabels:
-            args.ax.set_xticklabels(args.xmajorticklabels)
+            args.ax.set_xticklabels(args.xmajorticklabels, rotation = args.xrotation)
     if args.xminorticks:
         args.ax.set_xticks([fmt(x, args.xtype, args.xformat) for x in args.xminorticks], minor = True)
     if args.xtickformat:
         args.ax.xaxis.set_major_formatter(tick_fmt(args.xtype, args.xtickformat))
+    if args.xrotation:
+        plt.xticks(rotation = args.xrotation)
 
     if args.yscale:
         args.ax.set_yscale(args.yscale)#, nonposy='clip')
@@ -609,11 +612,11 @@ if __name__ == "__main__":
     if args.ytickformat:
         args.ax.yaxis.set_major_formatter(tick_fmt(args.ytype, args.ytickformat))
 
-    if not args.nolegend and len([l for l in args.labels if l != '']) > 0:
-        arts, lbls = args.ax.get_legend_handles_labels()
-        arts_o = [arts[lbls.index(l)] for l in args.labels if l in lbls]
+    arts, lbls = args.ax.get_legend_handles_labels()
+    arts_o = [arts[lbls.index(l)] for l in args.labels if l in lbls]
+    if not args.nolegend and len(arts_o) > 0:
         plt.legend(arts_o, args.labels, loc = args.legendposition if args.legendposition is not None else 0, fontsize = args.legendfontsize)
     # Save plot
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(args.filename, transparent=(not args.fill_background))
+    plt.savefig(args.filename, transparent=args.transparent)
