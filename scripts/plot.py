@@ -268,9 +268,10 @@ class PlotGroup(Group):
         if 'x' in self.data:
             kwargs['positions'] = [fmt(self.data['x'][0], args.xtype, args.xformat)]
             del kwargs['x']
+            kwargs['widths'] = next(args.size)
         else:
             kwargs['positions'] = [args.boxplotx]
-        kwargs['widths'] = next(args.size)
+            kwargs['widths'] = [0.5] # Half the distance between x coordinates
         box = args.ax.boxplot([[fmt(y, args.ytype, args.yformat) for y in self.data['sample']]],
             **kwargs)
         args.boxplotx += 1
