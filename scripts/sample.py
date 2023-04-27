@@ -69,6 +69,8 @@ if __name__ == "__main__":
     pp.parser.add_argument('-n', '--number', type=int, default=10, help='number of samples')
     pp.parser.add_argument('-p', '--probability', type=float, default=None, help='use probability to sample values, rather than choice. advantage is lower memory consumption. disadvantage is may not get [number] samples and uneven distribution.')
     args = pp.parseArgs()
+    if not args.append:
+        args.labels = [args.column_name]
     args = pp.getArgs(args)
 
     random.seed(args.seed)

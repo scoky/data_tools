@@ -136,6 +136,8 @@ class Header:
             try:
                 return int(colName)
             except ValueError as e:
+                if len(self.columns) == 0:
+                    return None
                 raise ValueError("Invalid column '%s' specified" % colName) from e
 
     def indexes(self, colNames):
@@ -199,6 +201,8 @@ class FileWriter:
 class FileReader:
     def __init__(self, inputStream, args):
         self._delimiter = args.delimiter if args.delimiter else os.environ.get('TOOLBOX_DELIMITER', ' ')
+        if self._delimiter == r'\t': # Handle special characters
+            self._delimiter = '\t'
         self._quotechar = args.quotechar if args.quotechar else os.environ.get('TOOLBOX_QUOTECHAR', '"')
         self._fileStream = openFile(inputStream, 'r', newline='')
         import csv

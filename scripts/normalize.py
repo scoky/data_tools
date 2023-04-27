@@ -5,7 +5,7 @@ import sys
 import argparse
 from data_tools.files import ParameterParser,findNumber
 from data_tools.group import Group,run_grouping
-from decimal import Decimal
+from decimal import Decimal,InvalidOperation
 
 class NormalizeGroup(Group):
     def __init__(self, tup):
@@ -29,7 +29,11 @@ class NormalizeGroup(Group):
     def done(self):
         import numpy as np
         vals = np.array([findNumber(chunks[args.column]) for chunks in self.values])
-        vals = (vals - vals.mean()) / vals.std()
+        try:
+            vals = (vals - vals.mean()) / vals.std()
+        except InvalidOperation:
+            # std is 0, which means vals are constant
+            vals = (vals - vals.mean())
         if not args.range is None:
             vals = ((vals - vals.min()) / (vals.max() - vals.min())) * (args.range[1] - args.range[0]) + args.range[0]
         if args.append:

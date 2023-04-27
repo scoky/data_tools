@@ -198,7 +198,10 @@ class PlotGroup(Group):
     @ColMaps(req = ['x', 'y'])
     def plot_bar(self, kwargs):
         bars = self.plot_stackbar(kwargs)
-        args.baroffset += bars[0].get_width()
+        try:
+            args.baroffset += bars[0].get_width()
+        except AttributeError:
+            args.baroffset = 0
         args.stackbottom = {}
 
         return bars
@@ -379,6 +382,9 @@ class PlotGroup(Group):
         c = np.ma.masked_less_equal(c, min_c)
         kwargs['cmap'] = args.colourmap
         del kwargs['color']
+        if args.colourbarrange is not None:
+            kwargs['vmin'] = args.colourbarrange[0]
+            kwargs['vmax'] = args.colourbarrange[1]
         if args.colourscale == 'log':
             import matplotlib.colors as colors
             kwargs['norm'] = colors.LogNorm()
@@ -490,6 +496,7 @@ if __name__ == "__main__":
     pp.parser.add_argument('--colours', nargs='+', help='colors to rotate through')
     pp.parser.add_argument('--colourmap', default='rainbow', help='rotate through the map. overridden by --colour')
     pp.parser.add_argument('--colourbarlabel', default='', help='label for the colour bar (if there is one)')
+    pp.parser.add_argument('--colourbarrange', nargs=2, type=float)
     pp.parser.add_argument('--colourscale', choices=['linear', 'log'])
     pp.parser.add_argument('--lines', nargs='+', help='auto')
     pp.parser.add_argument('--markers', nargs='+', help='auto')

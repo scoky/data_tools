@@ -5,9 +5,12 @@ import sys
 from data_tools.files import ParameterParser
 
 def printCols(data, headers = None, stream = sys.stdout, min_lengths = None, precision = None, commas = False):
+   header_widths = None
+   if not (headers is None):
+      header_widths = map(len, headers)
    rows = []
    if headers is not None:
-      rows.append(headers)
+      rows.append(headers) 
    rows.extend(data)
    # Nothing to print!
    if len(rows) == 0:
@@ -31,6 +34,21 @@ def printCols(data, headers = None, stream = sys.stdout, min_lengths = None, pre
       print(' '.join(['{:>{width}}'.format(v, width = lengths[c]) for c,v in enumerate(row)]).rstrip(), file=stream)
 
    return lengths
+
+def prettyPrintFrame(frame, output, padding = 2):
+    # Get the maximum width of each column including column header and content of each row
+    # Escape special characters (e.g., newline, tab) so they don't break format
+    widths = [max(max(map(len,map(lambda r: str(r).encode("unicode_escape").decode("utf-8"),frame[column]))) if len(frame[column]) > 0 else 0, len(column)) for column in frame]
+    # Print headers
+    # padding separates the columns by padding # spaces
+    print((' '*padding).join(str(r).ljust(w) for r,w in zip(frame, widths)), file=output)
+    # Print row of - to separate headers from data
+    print((' '*padding).join('-'*w for w in widths), file=output)
+    # itertuples preserves dtype
+    for row in frame.itertuples():
+        # row[0] is an index, so it is excluded
+        # row indices follow column order
+        print((' '*padding).join(str(r).encode("unicode_escape").decode("utf-8").ljust(w) for r,w in zip(row[1:], widths)), file=output)
 
 def isInt(val):
    try:
