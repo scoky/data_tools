@@ -28,6 +28,30 @@ class MedianGroup(Group):
     def done(self):
         args.outfile.write(self.tup + [computePercentile(r) for r in self.rows])
 
+    # Heap method. Saving for reference.
+    # def _add(self, row, val, b):
+    #     s, _, g, _ = row
+    #     heappush(s, (-val, b))
+    #     row[1] += b
+    #     val,b = heappop(s)
+    #     heappush(g, (-val, b))
+    #     row[1] -= b
+    #     row[3] += b
+    #     while row[3] > row[1]:
+    #         val,b = heappop(g)
+    #         heappush(s, (-val, b))
+    #         row[1] += b
+    #         row[3] -= b
+
+    # def _median(self, row):
+    #     s, scount, g, gcount = row
+    #     if scount > gcount:
+    #         return -s[0][0]
+    #     elif gcount > scount + 1:
+    #         return g[0][0]
+    #     else:
+    #         return (g[0][0] - s[0][0])/2
+
 def computePercentile(r, p=Decimal('0.5')):
     position = (sum(r.values()) + 1) * p
     ir = int(position)

@@ -14,18 +14,24 @@ class PrefixGroup(Group):
     def add(self, chunks):
         vals = []
         for c in args.columns:
-            ip = ipaddress.ip_network(str(chunks[c]))
-            plen = args.ipv4
-            if ip.version == 6:
-                plen = args.ipv6
-            vals.append(str(ip.supernet(new_prefix = plen)))
-        args.outfile.write(chunks + vals)
+            try:
+                ip = ipaddress.ip_network(str(chunks[c]))
+                plen = args.ipv4
+                if ip.version == 6:
+                    plen = args.ipv6
+                vals.append(str(ip.supernet(new_prefix = plen)))
+            except ValueError:
+                vals.append('err')
+        if args.append:
+            args.outfile.write(chunks + vals)
+        else:
+            args.outfile.write(self.tup + vals)
 
     def done(self):
         pass
 
 if __name__ == "__main__":
-    pp = ParameterParser('Compute prefixes of IP addresses', columns = '*', group = False, append = False, labels = [None], ordered = False)
+    pp = ParameterParser('Compute prefixes of IP addresses', columns = '*', group = False, labels = [None], ordered = False)
     pp.parser.add_argument('-i', '--ipv4', default=24, type=int, help='length to subnet IPv4 addresses')
     pp.parser.add_argument('-p', '--ipv6', default=48, type=int, help='length of subnet IPv6 addresses')
     args = pp.parseArgs()

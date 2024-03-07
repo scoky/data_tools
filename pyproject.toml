@@ -1,0 +1,13 @@
+[project]
+name = "data_tools"
+version = "1.0"
+authors = [
+  { name = "Kyle Schomp", email = "kyle.schomp@gmail.com" },
+]
+description = "Useful generic python scripts for working with text files from the command line"
+readme = "README.md"
+requires-python = ">=3.8"
+dynamic = ["scripts"]
+
+[project.urls]
+Homepage = "https://kyle.scho.mp/"
